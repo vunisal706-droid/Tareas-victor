@@ -1,0 +1,16 @@
+{
+  "name": "Tareas Víctor",
+  "short_name": "Tareas",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#f9f9f9",
+  "theme_color": "#4CAF50",
+  "description": "Aplicación para apuntar tareas y fechas importantes del colegio Capitulaciones.",
+  "icons": [
+    {
+      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAYAAABzenr0AAAAVUlEQVRYhe3PMQEAAAgDoL3/pF3gYAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAODBA9kAAfDFP/UAAAAASUVORK5CYII=",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}

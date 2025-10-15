@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tareas Víctor</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#4CAF50">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: "Inter", sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      color: #222;
+    }
+
+    header {
+      background-color: #4CAF50;
+      color: white;
+      padding: 1rem;
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: 600;
+    }
+
+    nav {
+      display: flex;
+      justify-content: space-around;
+      background-color: #e6e6e6;
+      padding: 0.5rem;
+    }
+
+    nav button {
+      background: none;
+      border: none;
+      font-size: 1rem;
+      font-weight: 600;
+      padding: 0.6rem 1rem;
+      border-radius: 8px;
+      transition: 0.3s;
+    }
+
+    nav button.active, nav button:hover {
+      background-color: #4CAF50;
+      color: white;
+    }
+
+    section {
+      display: none;
+      padding: 1rem;
+      max-width: 600px;
+      margin: auto;
+    }
+
+    section.active {
+      display: block;
+    }
+
+    .input-group {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+    }
+
+    input, button {
+      font-size: 1rem;
+      padding: 0.7rem;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      flex: 1;
+    }
+
+    button.add {
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      font-weight: 600;
+      flex: 0.8;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      background-color: white;
+      padding: 0.8rem;
+      margin-bottom: 0.6rem;
+      border-radius: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+
+    li span {
+      flex: 1;
+      padding-right: 0.5rem;
+    }
+
+    li button {
+      background-color: #e53935;
+      color: white;
+      border: none;
+      padding: 0.4rem 0.8rem;
+      border-radius: 5px;
+      font-size: 0.9rem;
+    }
+
+    footer {
+      text-align: center;
+      padding: 0.8rem;
+      font-size: 0.8rem;
+      color: #555;
+    }
+  </style>
+</head>
+<body>
+  <header>📋 Tareas Víctor</header>
+
+  <nav>
+    <button id="btnTareas" class="active">Tareas</button>
+    <button id="btnFechas">Fechas importantes</button>
+  </nav>
+
+  <section id="tareasSection" class="active">
+    <div class="input-group">
+      <input type="text" id="nuevaTarea" placeholder="Escribe una tarea...">
+      <button class="add" onclick="agregarTarea()">Añadir</button>
+    </div>
+    <ul id="listaTareas"></ul>
+  </section>
+
+  <section id="fechasSection">
+    <div class="input-group">
+      <input type="datetime-local" id="nuevaFechaHora">
+      <input type="text" id="nuevaFechaTexto" placeholder="Escribe evento o cita...">
+      <button class="add" onclick="agregarFecha()">Añadir</button>
+    </div>
+    <ul id="listaFechas"></ul>
+  </section>
+
+  <footer>© CEIP Capitulaciones</footer>
+
+  <script>
+    const tareasSection = document.getElementById('tareasSection');
+    const fechasSection = document.getElementById('fechasSection');
+    const btnTareas = document.getElementById('btnTareas');
+    const btnFechas = document.getElementById('btnFechas');
+    const listaTareas = document.getElementById('listaTareas');
+    const listaFechas = document.getElementById('listaFechas');
+
+    // Cambiar secciones
+    btnTareas.addEventListener('click', () => {
+      tareasSection.classList.add('active');
+      fechasSection.classList.remove('active');
+      btnTareas.classList.add('active');
+      btnFechas.classList.remove('active');
+    });
+
+    btnFechas.addEventListener('click', () => {
+      fechasSection.classList.add('active');
+      tareasSection.classList.remove('active');
+      btnFechas.classList.add('active');
+      btnTareas.classList.remove('active');
+    });
+
+    // Guardar tareas
+    function agregarTarea() {
+      const texto = document.getElementById('nuevaTarea').value.trim();
+      if (texto === '') return;
+      const tareas = JSON.parse(localStorage.getItem('tareas')) || [];
+      tareas.push(texto);
+      localStorage.setItem('tareas', JSON.stringify(tareas));
+      document.getElementById('nuevaTarea').value = '';
+      mostrarTareas();
+    }
+
+    function borrarTarea(index) {
+      const tareas = JSON.parse(localStorage.getItem('tareas')) || [];
+      tareas.splice(index, 1);
+      localStorage.setItem('tareas', JSON.stringify(tareas));
+      mostrarTareas();
+    }
+
+    function mostrarTareas() {
+      const tareas = JSON.parse(localStorage.getItem('tareas')) || [];
+      listaTareas.innerHTML = tareas.map((t, i) => `
+        <li><span>${t}</span><button onclick="borrarTarea(${i})">Hecho</button></li>
+      `).join('');
+    }
+
+    // Guardar fechas
+    function agregarFecha() {
+      const fechaHora = document.getElementById('nuevaFechaHora').value;
+      const texto = document.getElementById('nuevaFechaTexto').value.trim();
+      if (fechaHora === '' || texto === '') return;
+      const fechas = JSON.parse(localStorage.getItem('fechas')) || [];
+      fechas.push({ fechaHora, texto });
+      localStorage.setItem('fechas', JSON.stringify(fechas));
+      document.getElementById('nuevaFechaHora').value = '';
+      document.getElementById('nuevaFechaTexto').value = '';
+      mostrarFechas();
+    }
+
+    function borrarFecha(index) {
+      const fechas = JSON.parse(localStorage.getItem('fechas')) || [];
+      fechas.splice(index, 1);
+      localStorage.setItem('fechas', JSON.stringify(fechas));
+      mostrarFechas();
+    }
+
+    function mostrarFechas() {
+      const fechas = JSON.parse(localStorage.getItem('fechas')) || [];
+      listaFechas.innerHTML = fechas.map((f, i) => `
+        <li><span>${new Date(f.fechaHora).toLocaleString()} - ${f.texto}</span>
+        <button onclick="borrarFecha(${i})">Borrar</button></li>
+      `).join('');
+    }
+
+    mostrarTareas();
+    mostrarFechas();
+
+    // Registrar service worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('service-worker.js');
+    }
+  </script>
+</body>
+</html>
