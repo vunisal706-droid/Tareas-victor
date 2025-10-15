@@ -5,228 +5,208 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Tareas Víctor</title>
   <link rel="manifest" href="manifest.json">
-  <meta name="theme-color" content="#4CAF50">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
     body {
-      font-family: "Inter", sans-serif;
-      background-color: #f9f9f9;
+      font-family: 'Inter', sans-serif;
+      background-color: #f0f6ff;
+      color: #1b3b5f;
       margin: 0;
-      color: #222;
+      padding: 0;
     }
-
     header {
-      background-color: #4CAF50;
+      background: linear-gradient(90deg, #3a7bd5, #3a6073);
       color: white;
-      padding: 1rem;
       text-align: center;
-      font-size: 1.4rem;
+      padding: 15px 0;
+      font-size: 1.5em;
       font-weight: 600;
+      letter-spacing: 1px;
     }
-
     nav {
       display: flex;
-      justify-content: space-around;
-      background-color: #e6e6e6;
-      padding: 0.5rem;
+      justify-content: center;
+      background: #e1ecfa;
     }
-
     nav button {
-      background: none;
+      flex: 1;
+      padding: 12px;
       border: none;
-      font-size: 1rem;
+      background: none;
+      font-size: 1em;
+      color: #1b3b5f;
       font-weight: 600;
-      padding: 0.6rem 1rem;
-      border-radius: 8px;
-      transition: 0.3s;
     }
-
-    nav button.active, nav button:hover {
-      background-color: #4CAF50;
-      color: white;
+    nav button.active {
+      border-bottom: 3px solid #3a7bd5;
     }
-
-    section {
-      display: none;
-      padding: 1rem;
-      max-width: 600px;
-      margin: auto;
+    main {
+      padding: 20px;
     }
-
-    section.active {
-      display: block;
-    }
-
-    .input-group {
-      display: flex;
-      gap: 0.5rem;
-      margin-bottom: 1rem;
-      flex-wrap: wrap;
-    }
+    section { display: none; }
+    section.active { display: block; }
 
     input, button {
-      font-size: 1rem;
-      padding: 0.7rem;
+      padding: 10px;
+      font-size: 1em;
       border-radius: 6px;
-      border: 1px solid #ccc;
-      flex: 1;
+      border: 1px solid #c2d4f2;
     }
-
-    button.add {
-      background-color: #4CAF50;
+    button {
+      background-color: #3a7bd5;
       color: white;
-      border: none;
       font-weight: 600;
-      flex: 0.8;
+      border: none;
+      margin-left: 6px;
     }
-
     ul {
       list-style: none;
       padding: 0;
     }
-
     li {
-      background-color: white;
-      padding: 0.8rem;
-      margin-bottom: 0.6rem;
+      background: #ffffff;
+      margin: 8px 0;
+      padding: 12px;
       border-radius: 8px;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
-
-    li span {
-      flex: 1;
-      padding-right: 0.5rem;
-    }
-
     li button {
-      background-color: #e53935;
-      color: white;
+      background-color: #c0392b;
       border: none;
-      padding: 0.4rem 0.8rem;
-      border-radius: 5px;
-      font-size: 0.9rem;
+      padding: 6px 10px;
+      border-radius: 4px;
+      color: white;
+      font-size: 0.9em;
     }
-
     footer {
       text-align: center;
-      padding: 0.8rem;
-      font-size: 0.8rem;
-      color: #555;
+      font-size: 0.8em;
+      color: #597ca2;
+      padding: 10px;
     }
   </style>
 </head>
 <body>
-  <header>📋 Tareas Víctor</header>
-
+  <header>📘 Tareas Víctor</header>
   <nav>
     <button id="btnTareas" class="active">Tareas</button>
     <button id="btnFechas">Fechas importantes</button>
   </nav>
-
-  <section id="tareasSection" class="active">
-    <div class="input-group">
-      <input type="text" id="nuevaTarea" placeholder="Escribe una tarea...">
-      <button class="add" onclick="agregarTarea()">Añadir</button>
-    </div>
-    <ul id="listaTareas"></ul>
-  </section>
-
-  <section id="fechasSection">
-    <div class="input-group">
-      <input type="datetime-local" id="nuevaFechaHora">
-      <input type="text" id="nuevaFechaTexto" placeholder="Escribe evento o cita...">
-      <button class="add" onclick="agregarFecha()">Añadir</button>
-    </div>
-    <ul id="listaFechas"></ul>
-  </section>
-
-  <footer>© CEIP Capitulaciones</footer>
+  <main>
+    <section id="tareas" class="active">
+      <h3>Tareas pendientes</h3>
+      <input id="nuevaTarea" type="text" placeholder="Escribe una tarea...">
+      <button id="agregarTarea">Añadir</button>
+      <ul id="listaTareas"></ul>
+    </section>
+    <section id="fechas">
+      <h3>Fechas importantes</h3>
+      <input id="nuevaFecha" type="date">
+      <input id="horaFecha" type="time">
+      <input id="descripcionFecha" type="text" placeholder="Descripción o evento...">
+      <button id="agregarFecha">Añadir</button>
+      <ul id="listaFechas"></ul>
+    </section>
+  </main>
+  <footer>© CEIP Capitulaciones · Tareas Víctor</footer>
 
   <script>
-    const tareasSection = document.getElementById('tareasSection');
-    const fechasSection = document.getElementById('fechasSection');
+    // Cambio de secciones
     const btnTareas = document.getElementById('btnTareas');
     const btnFechas = document.getElementById('btnFechas');
-    const listaTareas = document.getElementById('listaTareas');
-    const listaFechas = document.getElementById('listaFechas');
+    const secTareas = document.getElementById('tareas');
+    const secFechas = document.getElementById('fechas');
 
-    // Cambiar secciones
-    btnTareas.addEventListener('click', () => {
-      tareasSection.classList.add('active');
-      fechasSection.classList.remove('active');
+    btnTareas.onclick = () => {
+      secTareas.classList.add('active');
+      secFechas.classList.remove('active');
       btnTareas.classList.add('active');
       btnFechas.classList.remove('active');
-    });
-
-    btnFechas.addEventListener('click', () => {
-      fechasSection.classList.add('active');
-      tareasSection.classList.remove('active');
+    };
+    btnFechas.onclick = () => {
+      secFechas.classList.add('active');
+      secTareas.classList.remove('active');
       btnFechas.classList.add('active');
       btnTareas.classList.remove('active');
-    });
+    };
 
-    // Guardar tareas
-    function agregarTarea() {
-      const texto = document.getElementById('nuevaTarea').value.trim();
-      if (texto === '') return;
-      const tareas = JSON.parse(localStorage.getItem('tareas')) || [];
-      tareas.push(texto);
-      localStorage.setItem('tareas', JSON.stringify(tareas));
-      document.getElementById('nuevaTarea').value = '';
-      mostrarTareas();
+    // Tareas
+    const listaTareas = document.getElementById('listaTareas');
+    const nuevaTarea = document.getElementById('nuevaTarea');
+    const agregarTarea = document.getElementById('agregarTarea');
+
+    function guardarTareas() {
+      localStorage.setItem('tareas', JSON.stringify(
+        [...listaTareas.querySelectorAll('li')].map(li => li.firstChild.textContent)
+      ));
     }
-
-    function borrarTarea(index) {
-      const tareas = JSON.parse(localStorage.getItem('tareas')) || [];
-      tareas.splice(index, 1);
-      localStorage.setItem('tareas', JSON.stringify(tareas));
-      mostrarTareas();
+    function cargarTareas() {
+      const tareas = JSON.parse(localStorage.getItem('tareas') || '[]');
+      tareas.forEach(t => añadirTarea(t));
     }
-
-    function mostrarTareas() {
-      const tareas = JSON.parse(localStorage.getItem('tareas')) || [];
-      listaTareas.innerHTML = tareas.map((t, i) => `
-        <li><span>${t}</span><button onclick="borrarTarea(${i})">Hecho</button></li>
-      `).join('');
+    function añadirTarea(texto) {
+      const li = document.createElement('li');
+      li.textContent = texto;
+      const btn = document.createElement('button');
+      btn.textContent = 'Hecha';
+      btn.onclick = () => { li.remove(); guardarTareas(); };
+      li.appendChild(btn);
+      listaTareas.appendChild(li);
     }
+    agregarTarea.onclick = () => {
+      if (nuevaTarea.value.trim()) {
+        añadirTarea(nuevaTarea.value.trim());
+        nuevaTarea.value = '';
+        guardarTareas();
+      }
+    };
+    cargarTareas();
 
-    // Guardar fechas
-    function agregarFecha() {
-      const fechaHora = document.getElementById('nuevaFechaHora').value;
-      const texto = document.getElementById('nuevaFechaTexto').value.trim();
-      if (fechaHora === '' || texto === '') return;
-      const fechas = JSON.parse(localStorage.getItem('fechas')) || [];
-      fechas.push({ fechaHora, texto });
-      localStorage.setItem('fechas', JSON.stringify(fechas));
-      document.getElementById('nuevaFechaHora').value = '';
-      document.getElementById('nuevaFechaTexto').value = '';
-      mostrarFechas();
+    // Fechas
+    const listaFechas = document.getElementById('listaFechas');
+    const nuevaFecha = document.getElementById('nuevaFecha');
+    const horaFecha = document.getElementById('horaFecha');
+    const descripcionFecha = document.getElementById('descripcionFecha');
+    const agregarFecha = document.getElementById('agregarFecha');
+
+    function guardarFechas() {
+      localStorage.setItem('fechas', JSON.stringify(
+        [...listaFechas.querySelectorAll('li')].map(li => li.firstChild.textContent)
+      ));
     }
-
-    function borrarFecha(index) {
-      const fechas = JSON.parse(localStorage.getItem('fechas')) || [];
-      fechas.splice(index, 1);
-      localStorage.setItem('fechas', JSON.stringify(fechas));
-      mostrarFechas();
+    function cargarFechas() {
+      const fechas = JSON.parse(localStorage.getItem('fechas') || '[]');
+      fechas.forEach(f => añadirFechaTexto(f));
     }
-
-    function mostrarFechas() {
-      const fechas = JSON.parse(localStorage.getItem('fechas')) || [];
-      listaFechas.innerHTML = fechas.map((f, i) => `
-        <li><span>${new Date(f.fechaHora).toLocaleString()} - ${f.texto}</span>
-        <button onclick="borrarFecha(${i})">Borrar</button></li>
-      `).join('');
+    function añadirFechaTexto(texto) {
+      const li = document.createElement('li');
+      li.textContent = texto;
+      const btn = document.createElement('button');
+      btn.textContent = 'Borrar';
+      btn.onclick = () => { li.remove(); guardarFechas(); };
+      li.appendChild(btn);
+      listaFechas.appendChild(li);
     }
+    agregarFecha.onclick = () => {
+      if (nuevaFecha.value && descripcionFecha.value.trim()) {
+        const texto = `${nuevaFecha.value} ${horaFecha.value || ''} — ${descripcionFecha.value.trim()}`;
+        añadirFechaTexto(texto);
+        nuevaFecha.value = '';
+        horaFecha.value = '';
+        descripcionFecha.value = '';
+        guardarFechas();
+      }
+    };
+    cargarFechas();
 
-    mostrarTareas();
-    mostrarFechas();
-
-    // Registrar service worker
+    // Service Worker
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('service-worker.js');
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js');
+      });
     }
   </script>
 </body>
