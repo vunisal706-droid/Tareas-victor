@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tareas Víctor</title>
+  <title>Victask</title>
   <link rel="manifest" href="manifest.json">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
   <style>
@@ -90,10 +90,11 @@
   </style>
 </head>
 <body>
-  <header>📘 Tareas Víctor</header>
+  <header>✅ Victask</header>
   <nav>
     <button id="btnTareas" class="active">Tareas</button>
-    <button id="btnFechas">Fechas importantes</button>
+    <button id="btnFechas">Fechas</button>
+    <button id="btnCompra">Compra</button>
   </nav>
   <main>
     <section id="tareas" class="active">
@@ -110,28 +111,34 @@
       <button id="agregarFecha">Añadir</button>
       <ul id="listaFechas"></ul>
     </section>
+    <section id="compra">
+      <h3>Lista de la compra</h3>
+      <input id="nuevoProducto" type="text" placeholder="Escribe un producto...">
+      <button id="agregarProducto">Añadir</button>
+      <ul id="listaCompra"></ul>
+    </section>
   </main>
-  <footer>© CEIP Capitulaciones · Tareas Víctor</footer>
+  <footer>© CEIP Capitulaciones · Victask</footer>
 
   <script>
     // Cambio de secciones
     const btnTareas = document.getElementById('btnTareas');
     const btnFechas = document.getElementById('btnFechas');
+    const btnCompra = document.getElementById('btnCompra');
     const secTareas = document.getElementById('tareas');
     const secFechas = document.getElementById('fechas');
+    const secCompra = document.getElementById('compra');
 
-    btnTareas.onclick = () => {
-      secTareas.classList.add('active');
-      secFechas.classList.remove('active');
-      btnTareas.classList.add('active');
-      btnFechas.classList.remove('active');
-    };
-    btnFechas.onclick = () => {
-      secFechas.classList.add('active');
-      secTareas.classList.remove('active');
-      btnFechas.classList.add('active');
-      btnTareas.classList.remove('active');
-    };
+    function activarSeccion(seccionActiva, botonActivo) {
+      [secTareas, secFechas, secCompra].forEach(sec => sec.classList.remove('active'));
+      [btnTareas, btnFechas, btnCompra].forEach(btn => btn.classList.remove('active'));
+      seccionActiva.classList.add('active');
+      botonActivo.classList.add('active');
+    }
+
+    btnTareas.onclick = () => activarSeccion(secTareas, btnTareas);
+    btnFechas.onclick = () => activarSeccion(secFechas, btnFechas);
+    btnCompra.onclick = () => activarSeccion(secCompra, btnCompra);
 
     // Tareas
     const listaTareas = document.getElementById('listaTareas');
@@ -172,6 +179,11 @@
     const descripcionFecha = document.getElementById('descripcionFecha');
     const agregarFecha = document.getElementById('agregarFecha');
 
+    function formatearFecha(fechaISO) {
+      const [año, mes, dia] = fechaISO.split('-');
+      return `${dia}/${mes}/${año}`;
+    }
+
     function guardarFechas() {
       localStorage.setItem('fechas', JSON.stringify(
         [...listaFechas.querySelectorAll('li')].map(li => li.firstChild.textContent)
@@ -192,7 +204,8 @@
     }
     agregarFecha.onclick = () => {
       if (nuevaFecha.value && descripcionFecha.value.trim()) {
-        const texto = `${nuevaFecha.value} ${horaFecha.value || ''} — ${descripcionFecha.value.trim()}`;
+        const fechaFormateada = formatearFecha(nuevaFecha.value);
+        const texto = `${fechaFormateada} ${horaFecha.value || ''} — ${descripcionFecha.value.trim()}`;
         añadirFechaTexto(texto);
         nuevaFecha.value = '';
         horaFecha.value = '';
@@ -201,6 +214,38 @@
       }
     };
     cargarFechas();
+
+    // Compra
+    const listaCompra = document.getElementById('listaCompra');
+    const nuevoProducto = document.getElementById('nuevoProducto');
+    const agregarProducto = document.getElementById('agregarProducto');
+
+    function guardarCompra() {
+      localStorage.setItem('compra', JSON.stringify(
+        [...listaCompra.querySelectorAll('li')].map(li => li.firstChild.textContent)
+      ));
+    }
+    function cargarCompra() {
+      const productos = JSON.parse(localStorage.getItem('compra') || '[]');
+      productos.forEach(p => añadirProducto(p));
+    }
+    function añadirProducto(texto) {
+      const li = document.createElement('li');
+      li.textContent = texto;
+      const btn = document.createElement('button');
+      btn.textContent = 'Comprado';
+      btn.onclick = () => { li.remove(); guardarCompra(); };
+      li.appendChild(btn);
+      listaCompra.appendChild(li);
+    }
+    agregarProducto.onclick = () => {
+      if (nuevoProducto.value.trim()) {
+        añadirProducto(nuevoProducto.value.trim());
+        nuevoProducto.value = '';
+        guardarCompra();
+      }
+    };
+    cargarCompra();
 
     // Service Worker
     if ('serviceWorker' in navigator) {
