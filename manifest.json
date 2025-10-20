@@ -1,15 +1,20 @@
 {
-  "name": "Tareas Víctor",
-  "short_name": "Tareas Víctor",
-  "start_url": "./index.html",
+  "name": "Victask",
+  "short_name": "Victask",
+  "description": "Gestor de tareas, fechas y lista de la compra",
+  "start_url": "/",
   "display": "standalone",
   "background_color": "#f0f6ff",
   "theme_color": "#3a7bd5",
-  "description": "App para apuntar tareas y fechas importantes del colegio Capitulaciones.",
   "icons": [
     {
-      "src": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADwAAAA8CAYAAACMuf8EAAAACXBIWXMAAAsTAAALEwEAmpwYAAABJklEQVR4nO3YQQ6CQBBF0SdiEsCF4f8PYuI6ByJ6QvRW4mNaRlmst71lG88cxyo5WkEQRCGEEIIkV9MC2AMzG+CKKqvsPf3g0c3sFu6g1d9AL/wH6wZ9tDW+whA4wQB+R7gNxA5EbhE0IsQXfD/jgwLaq2MM1pD0T/jDQkqziz+piu1RYcAXfWssFl1YLz1MLnUxtfY0z6aDNUnztgPu6lT6pUGV5h5YqQeLU7wlfMR8GXWqD0fXGJt14hdWeGV2aDy6T+7D8Dmrwz0aY19AbOXy3ITgHCyUp8AhBBCCCGEEEIIIYQQQgjvDQceFVFlZqDYsAAAAASUVORK5CYII=",
-      "sizes": "64x64",
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
       "type": "image/png"
     }
   ]
