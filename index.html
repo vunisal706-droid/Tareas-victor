@@ -81,6 +81,10 @@
       color: white;
       font-size: 0.9em;
     }
+    li button.whatsapp {
+      background-color: #25D366;
+      margin-right: 5px;
+    }
     footer {
       text-align: center;
       font-size: 0.8em;
@@ -196,6 +200,16 @@
     function añadirFechaTexto(texto) {
       const li = document.createElement('li');
       li.textContent = texto;
+      
+      const btnWhatsApp = document.createElement('button');
+      btnWhatsApp.textContent = '📤 WhatsApp';
+      btnWhatsApp.className = 'whatsapp';
+      btnWhatsApp.onclick = () => {
+        const mensaje = encodeURIComponent(`📅 Fecha importante:\n${texto}`);
+        window.open(`https://wa.me/?text=${mensaje}`, '_blank');
+      };
+      li.appendChild(btnWhatsApp);
+      
       const btn = document.createElement('button');
       btn.textContent = 'Borrar';
       btn.onclick = () => { li.remove(); guardarFechas(); };
