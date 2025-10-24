@@ -1,8 +1,8 @@
-const CACHE_NAME = 'victask-v1';
+const CACHE_NAME = 'victask-v2';
 const urlsToCache = [
-  '/',
-  '/index.html',
-  '/manifest.json'
+  '/Tareas-victor/',
+  '/Tareas-victor/index.html',
+  '/Tareas-victor/manifest.json'
 ];
 
 self.addEventListener('install', event => {
