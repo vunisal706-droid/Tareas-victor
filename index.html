@@ -73,6 +73,14 @@
       align-items: center;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
     }
+    li.prioritaria {
+      background: #ffe6e6;
+      border-left: 4px solid #c0392b;
+    }
+    li.pasada {
+      opacity: 0.6;
+      background: #f5f5f5;
+    }
     li button {
       background-color: #c0392b;
       border: none;
@@ -95,6 +103,55 @@
       width: 20px;
       height: 20px;
       fill: white;
+    }
+    li button.prioridad {
+      background-color: #f39c12;
+      margin-right: 5px;
+      padding: 6px 10px;
+    }
+    li button.prioridad.activa {
+      background-color: #c0392b;
+    }
+    .checkbox-container {
+      display: inline-flex;
+      align-items: center;
+      margin-left: 10px;
+    }
+    .checkbox-container input {
+      margin: 0 5px 0 0;
+      width: auto;
+    }
+    .checkbox-container label {
+      margin: 0;
+      font-size: 0.9em;
+      color: #c0392b;
+      font-weight: 600;
+    }
+    .fecha-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .fecha-texto {
+      font-weight: 600;
+    }
+    .fecha-dias {
+      font-size: 0.85em;
+      color: #597ca2;
+      margin-top: 4px;
+    }
+    .botones-fecha {
+      display: flex;
+      gap: 5px;
+    }
+    #btnNotificaciones {
+      background-color: #f39c12;
+      margin-left: 10px;
+      padding: 8px 12px;
+      font-size: 0.9em;
+    }
+    #btnNotificaciones.activo {
+      background-color: #27ae60;
     }
     footer {
       text-align: center;
@@ -120,10 +177,17 @@
     </section>
     <section id="fechas">
       <h3>Fechas importantes</h3>
-      <input id="nuevaFecha" type="date">
-      <input id="horaFecha" type="time">
-      <input id="descripcionFecha" type="text" placeholder="Descripción o evento...">
-      <button id="agregarFecha">Añadir</button>
+      <div>
+        <input id="nuevaFecha" type="date">
+        <input id="horaFecha" type="time">
+        <input id="descripcionFecha" type="text" placeholder="Descripción o evento...">
+        <div class="checkbox-container">
+          <input id="checkPrioridad" type="checkbox">
+          <label for="checkPrioridad">⭐ Prioritaria</label>
+        </div>
+        <button id="agregarFecha">Añadir</button>
+        <button id="btnNotificaciones">🔔 Activar Notificaciones</button>
+      </div>
       <ul id="listaFechas"></ul>
     </section>
     <section id="compra">
@@ -188,58 +252,255 @@
     };
     cargarTareas();
 
-    // Fechas
+    // FECHAS CON MEJORAS
     const listaFechas = document.getElementById('listaFechas');
     const nuevaFecha = document.getElementById('nuevaFecha');
     const horaFecha = document.getElementById('horaFecha');
     const descripcionFecha = document.getElementById('descripcionFecha');
     const agregarFecha = document.getElementById('agregarFecha');
+    const checkPrioridad = document.getElementById('checkPrioridad');
+    const btnNotificaciones = document.getElementById('btnNotificaciones');
+
+    // Gestión de notificaciones
+    btnNotificaciones.onclick = async () => {
+      if (!("Notification" in window)) {
+        alert("Este navegador no soporta notificaciones");
+        return;
+      }
+
+      if (Notification.permission === "granted") {
+        alert("Las notificaciones ya están activadas ✅");
+        btnNotificaciones.classList.add('activo');
+        btnNotificaciones.textContent = "🔔 Notificaciones ON";
+        return;
+      }
+
+      if (Notification.permission !== "denied") {
+        const permission = await Notification.requestPermission();
+        if (permission === "granted") {
+          btnNotificaciones.classList.add('activo');
+          btnNotificaciones.textContent = "🔔 Notificaciones ON";
+          new Notification("¡Notificaciones activadas!", {
+            body: "Recibirás recordatorios de tus fechas importantes",
+            icon: "https://cdn-icons-png.flaticon.com/512/190/190411.png"
+          });
+          programarTodasLasNotificaciones();
+        }
+      } else {
+        alert("Las notificaciones están bloqueadas. Actívalas en la configuración del navegador.");
+      }
+    };
+
+    // Verificar estado de notificaciones al cargar
+    if (Notification.permission === "granted") {
+      btnNotificaciones.classList.add('activo');
+      btnNotificaciones.textContent = "🔔 Notificaciones ON";
+    }
 
     function formatearFecha(fechaISO) {
       const [año, mes, dia] = fechaISO.split('-');
       return `${dia}/${mes}/${año}`;
     }
 
-    function guardarFechas() {
-      localStorage.setItem('fechas', JSON.stringify(
-        [...listaFechas.querySelectorAll('li')].map(li => li.firstChild.textContent)
-      ));
-    }
-    function cargarFechas() {
-      const fechas = JSON.parse(localStorage.getItem('fechas') || '[]');
-      fechas.forEach(f => añadirFechaTexto(f));
-    }
-    function añadirFechaTexto(texto) {
-      const li = document.createElement('li');
-      li.textContent = texto;
+    function calcularDiasRestantes(fechaISO) {
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      const fecha = new Date(fechaISO + 'T00:00:00');
+      const diff = fecha - hoy;
+      const dias = Math.ceil(diff / (1000 * 60 * 60 * 24));
       
+      if (dias < 0) return { dias, texto: `Hace ${Math.abs(dias)} día${Math.abs(dias) !== 1 ? 's' : ''}`, pasada: true };
+      if (dias === 0) return { dias, texto: '¡Hoy!', pasada: false };
+      if (dias === 1) return { dias, texto: 'Mañana', pasada: false };
+      return { dias, texto: `En ${dias} días`, pasada: false };
+    }
+
+    function guardarFechas() {
+      const fechas = JSON.parse(localStorage.getItem('fechas') || '[]');
+      localStorage.setItem('fechas', JSON.stringify(fechas));
+    }
+
+    function eliminarFechasPasadas() {
+      const fechas = JSON.parse(localStorage.getItem('fechas') || '[]');
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      const ayer = new Date(hoy);
+      ayer.setDate(ayer.getDate() - 1);
+      
+      const fechasFiltradas = fechas.filter(f => {
+        const fechaObj = new Date(f.fechaISO + 'T00:00:00');
+        return fechaObj >= ayer;
+      });
+      
+      localStorage.setItem('fechas', JSON.stringify(fechasFiltradas));
+    }
+
+    function ordenarYMostrarFechas() {
+      listaFechas.innerHTML = '';
+      const fechas = JSON.parse(localStorage.getItem('fechas') || '[]');
+      
+      // Ordenar por proximidad
+      fechas.sort((a, b) => {
+        const fechaA = new Date(a.fechaISO + 'T00:00:00');
+        const fechaB = new Date(b.fechaISO + 'T00:00:00');
+        return fechaA - fechaB;
+      });
+      
+      fechas.forEach((f, index) => añadirFechaDOM(f, index));
+    }
+
+    function añadirFechaDOM(fechaObj, index) {
+      const li = document.createElement('li');
+      if (fechaObj.prioritaria) {
+        li.classList.add('prioritaria');
+      }
+      
+      const infoRestante = calcularDiasRestantes(fechaObj.fechaISO);
+      if (infoRestante.pasada) {
+        li.classList.add('pasada');
+      }
+      
+      const divInfo = document.createElement('div');
+      divInfo.className = 'fecha-info';
+      
+      const spanTexto = document.createElement('div');
+      spanTexto.className = 'fecha-texto';
+      const prioridadIcon = fechaObj.prioritaria ? '⭐ ' : '';
+      spanTexto.textContent = `${prioridadIcon}${formatearFecha(fechaObj.fechaISO)} ${fechaObj.hora || ''} — ${fechaObj.descripcion}`;
+      
+      const spanDias = document.createElement('div');
+      spanDias.className = 'fecha-dias';
+      spanDias.textContent = infoRestante.texto;
+      
+      divInfo.appendChild(spanTexto);
+      divInfo.appendChild(spanDias);
+      li.appendChild(divInfo);
+      
+      const divBotones = document.createElement('div');
+      divBotones.className = 'botones-fecha';
+      
+      // Botón prioridad
+      const btnPrioridad = document.createElement('button');
+      btnPrioridad.className = 'prioridad';
+      if (fechaObj.prioritaria) {
+        btnPrioridad.classList.add('activa');
+        btnPrioridad.textContent = '⭐';
+      } else {
+        btnPrioridad.textContent = '☆';
+      }
+      btnPrioridad.onclick = () => {
+        const fechas = JSON.parse(localStorage.getItem('fechas') || '[]');
+        fechas[index].prioritaria = !fechas[index].prioritaria;
+        localStorage.setItem('fechas', JSON.stringify(fechas));
+        ordenarYMostrarFechas();
+        programarNotificacion(fechas[index]);
+      };
+      divBotones.appendChild(btnPrioridad);
+      
+      // Botón WhatsApp
       const btnWhatsApp = document.createElement('button');
       btnWhatsApp.className = 'whatsapp';
       btnWhatsApp.innerHTML = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>';
       btnWhatsApp.onclick = () => {
+        const texto = `${prioridadIcon}${formatearFecha(fechaObj.fechaISO)} ${fechaObj.hora || ''} — ${fechaObj.descripcion}`;
         const mensaje = encodeURIComponent(`📅 Fecha importante:\n${texto}`);
         window.open(`https://wa.me/?text=${mensaje}`, '_blank');
       };
-      li.appendChild(btnWhatsApp);
+      divBotones.appendChild(btnWhatsApp);
       
+      // Botón Borrar
       const btn = document.createElement('button');
       btn.textContent = 'Borrar';
-      btn.onclick = () => { li.remove(); guardarFechas(); };
-      li.appendChild(btn);
+      btn.onclick = () => {
+        const fechas = JSON.parse(localStorage.getItem('fechas') || '[]');
+        fechas.splice(index, 1);
+        localStorage.setItem('fechas', JSON.stringify(fechas));
+        ordenarYMostrarFechas();
+      };
+      divBotones.appendChild(btn);
+      
+      li.appendChild(divBotones);
       listaFechas.appendChild(li);
     }
+
+    function programarNotificacion(fechaObj) {
+      if (Notification.permission !== "granted") return;
+
+      const hoy = new Date();
+      const fechaEvento = new Date(fechaObj.fechaISO + 'T' + (fechaObj.hora || '09:00'));
+      
+      // Notificación el día del evento
+      if (fechaEvento > hoy) {
+        const tiempoRestante = fechaEvento - hoy;
+        if (tiempoRestante > 0 && tiempoRestante < 86400000) { // Dentro de 24 horas
+          setTimeout(() => {
+            const prioridad = fechaObj.prioritaria ? '⭐ PRIORITARIO - ' : '';
+            new Notification(`${prioridad}Fecha importante`, {
+              body: fechaObj.descripcion,
+              icon: "https://cdn-icons-png.flaticon.com/512/190/190411.png",
+              requireInteraction: fechaObj.prioritaria
+            });
+          }, tiempoRestante);
+        }
+      }
+
+      // Notificación 1 día antes a las 9 AM
+      const unDiaAntes = new Date(fechaObj.fechaISO + 'T09:00:00');
+      unDiaAntes.setDate(unDiaAntes.getDate() - 1);
+      
+      if (unDiaAntes > hoy) {
+        const tiempoAntes = unDiaAntes - hoy;
+        if (tiempoAntes > 0 && tiempoAntes < 86400000) {
+          setTimeout(() => {
+            const prioridad = fechaObj.prioritaria ? '⭐ ' : '';
+            new Notification(`${prioridad}Recordatorio: Mañana`, {
+              body: fechaObj.descripcion,
+              icon: "https://cdn-icons-png.flaticon.com/512/190/190411.png"
+            });
+          }, tiempoAntes);
+        }
+      }
+    }
+
+    function programarTodasLasNotificaciones() {
+      const fechas = JSON.parse(localStorage.getItem('fechas') || '[]');
+      fechas.forEach(f => programarNotificacion(f));
+    }
+
     agregarFecha.onclick = () => {
       if (nuevaFecha.value && descripcionFecha.value.trim()) {
-        const fechaFormateada = formatearFecha(nuevaFecha.value);
-        const texto = `${fechaFormateada} ${horaFecha.value || ''} — ${descripcionFecha.value.trim()}`;
-        añadirFechaTexto(texto);
+        const fechas = JSON.parse(localStorage.getItem('fechas') || '[]');
+        
+        const nuevaFechaObj = {
+          fechaISO: nuevaFecha.value,
+          hora: horaFecha.value,
+          descripcion: descripcionFecha.value.trim(),
+          prioritaria: checkPrioridad.checked
+        };
+        
+        fechas.push(nuevaFechaObj);
+        localStorage.setItem('fechas', JSON.stringify(fechas));
+        
         nuevaFecha.value = '';
         horaFecha.value = '';
         descripcionFecha.value = '';
-        guardarFechas();
+        checkPrioridad.checked = false;
+        
+        ordenarYMostrarFechas();
+        programarNotificacion(nuevaFechaObj);
       }
     };
-    cargarFechas();
+
+    // Cargar fechas al inicio
+    eliminarFechasPasadas();
+    ordenarYMostrarFechas();
+    programarTodasLasNotificaciones();
+
+    // Verificar diariamente para eliminar fechas pasadas
+    setInterval(() => {
+      eliminarFechasPasadas();
+      ordenarYMostrarFechas();
+    }, 3600000); // Cada hora
 
     // Compra
     const listaCompra = document.getElementById('listaCompra');
@@ -249,7 +510,7 @@
 
     function guardarCompra() {
       localStorage.setItem('compra', JSON.stringify(
-        [...listaCompra.querySelectorAll('li')].map(li => li.firstChild.textContent)
+        [...listaCompra.querySelectorAll('li span')].map(span => span.textContent)
       ));
     }
     function cargarCompra() {
@@ -305,7 +566,7 @@
     // Service Worker
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js');
+        navigator.serviceWorker.register('service-worker.js').catch(() => {});
       });
     }
   </script>
