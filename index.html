@@ -72,6 +72,18 @@
       justify-content: space-between;
       align-items: center;
       box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      cursor: move;
+      transition: all 0.2s ease;
+    }
+    li:hover {
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    li.dragging {
+      opacity: 0.5;
+      transform: scale(1.02);
+    }
+    li.drag-over {
+      border-top: 3px solid #3a7bd5;
     }
     li.prioritaria {
       background: #ffe6e6;
@@ -80,6 +92,10 @@
     li.pasada {
       opacity: 0.6;
       background: #f5f5f5;
+    }
+    li.vencida {
+      background: #fff3cd;
+      border-left: 4px solid #f39c12;
     }
     li button {
       background-color: #c0392b;
@@ -127,6 +143,19 @@
       color: #c0392b;
       font-weight: 600;
     }
+    .tarea-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+    }
+    .tarea-texto {
+      font-weight: 400;
+    }
+    .tarea-fecha-vencimiento {
+      font-size: 0.85em;
+      color: #597ca2;
+      margin-top: 4px;
+    }
     .fecha-info {
       flex: 1;
       display: flex;
@@ -144,6 +173,14 @@
       display: flex;
       gap: 5px;
     }
+    .botones-tarea {
+      display: flex;
+      gap: 5px;
+    }
+    .input-opcional {
+      margin-top: 8px;
+      font-size: 0.9em;
+    }
     #btnNotificaciones {
       background-color: #f39c12;
       margin-left: 10px;
@@ -152,6 +189,13 @@
     }
     #btnNotificaciones.activo {
       background-color: #27ae60;
+    }
+    .drag-handle {
+      cursor: move;
+      padding: 0 8px;
+      color: #597ca2;
+      font-size: 1.2em;
+      user-select: none;
     }
     footer {
       text-align: center;
@@ -172,7 +216,15 @@
     <section id="tareas" class="active">
       <h3>Tareas pendientes</h3>
       <input id="nuevaTarea" type="text" placeholder="Escribe una tarea...">
+      <div class="checkbox-container">
+        <input id="checkPrioridadTarea" type="checkbox">
+        <label for="checkPrioridadTarea">⭐ Prioritaria</label>
+      </div>
       <button id="agregarTarea">Añadir</button>
+      <div class="input-opcional">
+        <input id="fechaVencimientoTarea" type="date" placeholder="Fecha límite (opcional)" style="width: 180px;">
+        <label style="font-size: 0.85em; color: #597ca2; margin-left: 5px;">Fecha límite (opcional)</label>
+      </div>
       <ul id="listaTareas"></ul>
     </section>
     <section id="fechas">
@@ -201,6 +253,11 @@
   <footer>© CEIP Capitulaciones · Victask</footer>
 
   <script>
+    // Utilidad para generar IDs únicos
+    function generarId() {
+      return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    }
+
     // Cambio de secciones
     const btnTareas = document.getElementById('btnTareas');
     const btnFechas = document.getElementById('btnFechas');
@@ -210,8 +267,8 @@
     const secCompra = document.getElementById('compra');
 
     function activarSeccion(seccionActiva, botonActivo) {
-      [secTareas, secFechas, secCompra].forEach(sec => sec.classList.remove('active'));
-      [btnTareas, btnFechas, btnCompra].forEach(btn => btn.classList.remove('active'));
+      [secTareas, secFechas, secCompra].forEach(s => s.classList.remove('active'));
+      [btnTareas, btnFechas, btnCompra].forEach(b => b.classList.remove('active'));
       seccionActiva.classList.add('active');
       botonActivo.classList.add('active');
     }
@@ -220,39 +277,203 @@
     btnFechas.onclick = () => activarSeccion(secFechas, btnFechas);
     btnCompra.onclick = () => activarSeccion(secCompra, btnCompra);
 
-    // Tareas
+    // Tareas con drag & drop
     const listaTareas = document.getElementById('listaTareas');
     const nuevaTarea = document.getElementById('nuevaTarea');
     const agregarTarea = document.getElementById('agregarTarea');
+    const checkPrioridadTarea = document.getElementById('checkPrioridadTarea');
+    const fechaVencimientoTarea = document.getElementById('fechaVencimientoTarea');
 
-    function guardarTareas() {
-      localStorage.setItem('tareas', JSON.stringify(
-        [...listaTareas.querySelectorAll('li')].map(li => li.firstChild.textContent)
-      ));
+    let draggedElement = null;
+
+    function guardarTareas(tareas) {
+      localStorage.setItem('tareas', JSON.stringify(tareas));
     }
-    function cargarTareas() {
+
+    function obtenerTareas() {
       const tareas = JSON.parse(localStorage.getItem('tareas') || '[]');
-      tareas.forEach(t => añadirTarea(t));
+      // Migrar tareas antiguas sin ID
+      return tareas.map(t => {
+        if (!t.id) t.id = generarId();
+        return t;
+      });
     }
-    function añadirTarea(texto) {
+
+    function calcularDiasRestantes(fechaISO) {
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      const fechaObjetivo = new Date(fechaISO);
+      const diferencia = fechaObjetivo - hoy;
+      const dias = Math.ceil(diferencia / (1000 * 60 * 60 * 24));
+      
+      if (dias === 0) return { dias: 0, texto: '¡Vence hoy!', vencida: true };
+      if (dias === 1) return { dias: 1, texto: 'Vence mañana', vencida: false };
+      if (dias < 0) return { dias: dias, texto: `Venció hace ${Math.abs(dias)} día${Math.abs(dias) > 1 ? 's' : ''}`, vencida: true };
+      if (dias <= 3) return { dias: dias, texto: `Vence en ${dias} días ⚠️`, vencida: false };
+      return { dias: dias, texto: `Vence en ${dias} días`, vencida: false };
+    }
+
+    function cargarTareas() {
+      const tareas = obtenerTareas();
+      listaTareas.innerHTML = '';
+      
+      tareas.forEach((tarea) => añadirTareaALista(tarea));
+    }
+
+    function añadirTareaALista(tarea) {
       const li = document.createElement('li');
-      li.textContent = texto;
-      const btn = document.createElement('button');
-      btn.textContent = 'Hecha';
-      btn.onclick = () => { li.remove(); guardarTareas(); };
-      li.appendChild(btn);
+      li.draggable = true;
+      li.dataset.id = tarea.id;
+      
+      if (tarea.prioritaria) {
+        li.classList.add('prioritaria');
+      }
+      
+      // Verificar si está vencida
+      if (tarea.fechaVencimiento) {
+        const info = calcularDiasRestantes(tarea.fechaVencimiento);
+        if (info.vencida) {
+          li.classList.add('vencida');
+        }
+      }
+      
+      // Drag handle
+      const dragHandle = document.createElement('span');
+      dragHandle.className = 'drag-handle';
+      dragHandle.innerHTML = '⋮⋮';
+      li.appendChild(dragHandle);
+      
+      const divInfo = document.createElement('div');
+      divInfo.className = 'tarea-info';
+      
+      const span = document.createElement('div');
+      span.className = 'tarea-texto';
+      const prioridadIcon = tarea.prioritaria ? '⭐ ' : '';
+      span.textContent = `${prioridadIcon}${tarea.texto}`;
+      divInfo.appendChild(span);
+      
+      // Mostrar fecha de vencimiento si existe
+      if (tarea.fechaVencimiento) {
+        const spanFecha = document.createElement('div');
+        spanFecha.className = 'tarea-fecha-vencimiento';
+        const info = calcularDiasRestantes(tarea.fechaVencimiento);
+        const fechaFormateada = new Date(tarea.fechaVencimiento).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+        spanFecha.textContent = `📅 ${fechaFormateada} — ${info.texto}`;
+        divInfo.appendChild(spanFecha);
+      }
+      
+      li.appendChild(divInfo);
+      
+      const divBotones = document.createElement('div');
+      divBotones.className = 'botones-tarea';
+      
+      // Botón prioridad
+      const btnPrioridad = document.createElement('button');
+      btnPrioridad.className = 'prioridad';
+      if (tarea.prioritaria) {
+        btnPrioridad.classList.add('activa');
+        btnPrioridad.textContent = '⭐';
+      } else {
+        btnPrioridad.textContent = '☆';
+      }
+      btnPrioridad.onclick = () => {
+        const tareas = obtenerTareas();
+        const tareaIndex = tareas.findIndex(t => t.id === tarea.id);
+        if (tareaIndex !== -1) {
+          tareas[tareaIndex].prioritaria = !tareas[tareaIndex].prioritaria;
+          guardarTareas(tareas);
+          cargarTareas();
+        }
+      };
+      divBotones.appendChild(btnPrioridad);
+      
+      // Botón Hecho
+      const btnHecho = document.createElement('button');
+      btnHecho.textContent = 'Hecho';
+      btnHecho.onclick = () => {
+        const tareas = obtenerTareas();
+        const tareasFiltradas = tareas.filter(t => t.id !== tarea.id);
+        guardarTareas(tareasFiltradas);
+        cargarTareas();
+      };
+      divBotones.appendChild(btnHecho);
+      
+      li.appendChild(divBotones);
+      
+      // Eventos de drag & drop
+      li.addEventListener('dragstart', (e) => {
+        draggedElement = li;
+        li.classList.add('dragging');
+        e.dataTransfer.effectAllowed = 'move';
+      });
+      
+      li.addEventListener('dragend', (e) => {
+        li.classList.remove('dragging');
+        document.querySelectorAll('#listaTareas li').forEach(item => {
+          item.classList.remove('drag-over');
+        });
+      });
+      
+      li.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        if (draggedElement !== li) {
+          li.classList.add('drag-over');
+        }
+      });
+      
+      li.addEventListener('dragleave', (e) => {
+        li.classList.remove('drag-over');
+      });
+      
+      li.addEventListener('drop', (e) => {
+        e.preventDefault();
+        li.classList.remove('drag-over');
+        
+        if (draggedElement !== li) {
+          const tareas = obtenerTareas();
+          const draggedId = draggedElement.dataset.id;
+          const targetId = li.dataset.id;
+          
+          const draggedIndex = tareas.findIndex(t => t.id === draggedId);
+          const targetIndex = tareas.findIndex(t => t.id === targetId);
+          
+          if (draggedIndex !== -1 && targetIndex !== -1) {
+            const [draggedItem] = tareas.splice(draggedIndex, 1);
+            tareas.splice(targetIndex, 0, draggedItem);
+            guardarTareas(tareas);
+            cargarTareas();
+          }
+        }
+      });
+      
       listaTareas.appendChild(li);
     }
+
     agregarTarea.onclick = () => {
       if (nuevaTarea.value.trim()) {
-        añadirTarea(nuevaTarea.value.trim());
+        const tareas = obtenerTareas();
+        const nuevaTareaObj = {
+          id: generarId(),
+          texto: nuevaTarea.value.trim(),
+          prioritaria: checkPrioridadTarea.checked,
+          fechaVencimiento: fechaVencimientoTarea.value || null
+        };
+        tareas.push(nuevaTareaObj);
+        guardarTareas(tareas);
         nuevaTarea.value = '';
-        guardarTareas();
+        checkPrioridadTarea.checked = false;
+        fechaVencimientoTarea.value = '';
+        cargarTareas();
       }
     };
+
+    nuevaTarea.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') agregarTarea.click();
+    });
+
     cargarTareas();
 
-    // FECHAS CON MEJORAS
+    // Fechas con IDs únicos
     const listaFechas = document.getElementById('listaFechas');
     const nuevaFecha = document.getElementById('nuevaFecha');
     const horaFecha = document.getElementById('horaFecha');
@@ -261,102 +482,119 @@
     const checkPrioridad = document.getElementById('checkPrioridad');
     const btnNotificaciones = document.getElementById('btnNotificaciones');
 
-    // Gestión de notificaciones
-    btnNotificaciones.onclick = async () => {
-      if (!("Notification" in window)) {
-        alert("Este navegador no soporta notificaciones");
-        return;
+    nuevaFecha.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        horaFecha.focus();
       }
+    });
 
+    horaFecha.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        descripcionFecha.focus();
+      }
+    });
+
+    descripcionFecha.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') agregarFecha.click();
+    });
+
+    btnNotificaciones.onclick = () => {
       if (Notification.permission === "granted") {
-        alert("Las notificaciones ya están activadas ✅");
+        alert("Las notificaciones ya están activadas");
         btnNotificaciones.classList.add('activo');
-        btnNotificaciones.textContent = "🔔 Notificaciones ON";
-        return;
-      }
-
-      if (Notification.permission !== "denied") {
-        const permission = await Notification.requestPermission();
-        if (permission === "granted") {
-          btnNotificaciones.classList.add('activo');
-          btnNotificaciones.textContent = "🔔 Notificaciones ON";
-          new Notification("¡Notificaciones activadas!", {
-            body: "Recibirás recordatorios de tus fechas importantes",
-            icon: "https://cdn-icons-png.flaticon.com/512/190/190411.png"
-          });
-          programarTodasLasNotificaciones();
-        }
+        btnNotificaciones.textContent = '🔔 Notificaciones Activadas';
+        programarTodasLasNotificaciones();
+      } else if (Notification.permission !== "denied") {
+        Notification.requestPermission().then(permission => {
+          if (permission === "granted") {
+            alert("Notificaciones activadas correctamente");
+            btnNotificaciones.classList.add('activo');
+            btnNotificaciones.textContent = '🔔 Notificaciones Activadas';
+            programarTodasLasNotificaciones();
+          } else {
+            alert("Notificaciones denegadas");
+          }
+        });
       } else {
-        alert("Las notificaciones están bloqueadas. Actívalas en la configuración del navegador.");
+        alert("Las notificaciones están bloqueadas. Actívalas desde la configuración del navegador.");
       }
     };
 
-    // Verificar estado de notificaciones al cargar
     if (Notification.permission === "granted") {
       btnNotificaciones.classList.add('activo');
-      btnNotificaciones.textContent = "🔔 Notificaciones ON";
+      btnNotificaciones.textContent = '🔔 Notificaciones Activadas';
     }
 
-    function formatearFecha(fechaISO) {
-      const [año, mes, dia] = fechaISO.split('-');
-      return `${dia}/${mes}/${año}`;
-    }
-
-    function calcularDiasRestantes(fechaISO) {
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
-      const fecha = new Date(fechaISO + 'T00:00:00');
-      const diff = fecha - hoy;
-      const dias = Math.ceil(diff / (1000 * 60 * 60 * 24));
-      
-      if (dias < 0) return { dias, texto: `Hace ${Math.abs(dias)} día${Math.abs(dias) !== 1 ? 's' : ''}`, pasada: true };
-      if (dias === 0) return { dias, texto: '¡Hoy!', pasada: false };
-      if (dias === 1) return { dias, texto: 'Mañana', pasada: false };
-      return { dias, texto: `En ${dias} días`, pasada: false };
-    }
-
-    function guardarFechas() {
+    function obtenerFechas() {
       const fechas = JSON.parse(localStorage.getItem('fechas') || '[]');
+      // Migrar fechas antiguas sin ID
+      return fechas.map(f => {
+        if (!f.id) f.id = generarId();
+        return f;
+      });
+    }
+
+    function guardarFechas(fechas) {
       localStorage.setItem('fechas', JSON.stringify(fechas));
     }
 
     function eliminarFechasPasadas() {
-      const fechas = JSON.parse(localStorage.getItem('fechas') || '[]');
+      const fechas = obtenerFechas();
       const hoy = new Date();
       hoy.setHours(0, 0, 0, 0);
-      const ayer = new Date(hoy);
-      ayer.setDate(ayer.getDate() - 1);
       
       const fechasFiltradas = fechas.filter(f => {
-        const fechaObj = new Date(f.fechaISO + 'T00:00:00');
-        return fechaObj >= ayer;
+        const fechaEvento = new Date(f.fechaISO);
+        return fechaEvento >= hoy;
       });
       
-      localStorage.setItem('fechas', JSON.stringify(fechasFiltradas));
+      if (fechasFiltradas.length !== fechas.length) {
+        guardarFechas(fechasFiltradas);
+      }
+    }
+
+    function formatearFecha(fechaISO) {
+      const fecha = new Date(fechaISO);
+      const opciones = { day: 'numeric', month: 'short', year: 'numeric' };
+      return fecha.toLocaleDateString('es-ES', opciones);
+    }
+
+    function calcularDiasRestantesFecha(fechaISO) {
+      const hoy = new Date();
+      hoy.setHours(0, 0, 0, 0);
+      const fechaObjetivo = new Date(fechaISO);
+      const diferencia = fechaObjetivo - hoy;
+      const dias = Math.ceil(diferencia / (1000 * 60 * 60 * 24));
+      
+      if (dias === 0) return { dias: 0, texto: '¡Hoy!' };
+      if (dias === 1) return { dias: 1, texto: 'Mañana' };
+      if (dias < 0) return { dias: dias, texto: 'Fecha pasada' };
+      return { dias: dias, texto: `Faltan ${dias} días` };
     }
 
     function ordenarYMostrarFechas() {
+      const fechas = obtenerFechas();
       listaFechas.innerHTML = '';
-      const fechas = JSON.parse(localStorage.getItem('fechas') || '[]');
       
-      // Ordenar por proximidad
+      // Ordenar por prioridad y luego por fecha
       fechas.sort((a, b) => {
-        const fechaA = new Date(a.fechaISO + 'T00:00:00');
-        const fechaB = new Date(b.fechaISO + 'T00:00:00');
-        return fechaA - fechaB;
+        if (a.prioritaria && !b.prioritaria) return -1;
+        if (!a.prioritaria && b.prioritaria) return 1;
+        return new Date(a.fechaISO) - new Date(b.fechaISO);
       });
       
-      fechas.forEach((f, index) => añadirFechaDOM(f, index));
+      fechas.forEach((fecha) => mostrarFecha(fecha));
     }
 
-    function añadirFechaDOM(fechaObj, index) {
+    function mostrarFecha(fechaObj) {
       const li = document.createElement('li');
+      const infoRestante = calcularDiasRestantesFecha(fechaObj.fechaISO);
+      
       if (fechaObj.prioritaria) {
         li.classList.add('prioritaria');
       }
       
-      const infoRestante = calcularDiasRestantes(fechaObj.fechaISO);
-      if (infoRestante.pasada) {
+      if (infoRestante.dias < 0) {
         li.classList.add('pasada');
       }
       
@@ -389,11 +627,14 @@
         btnPrioridad.textContent = '☆';
       }
       btnPrioridad.onclick = () => {
-        const fechas = JSON.parse(localStorage.getItem('fechas') || '[]');
-        fechas[index].prioritaria = !fechas[index].prioritaria;
-        localStorage.setItem('fechas', JSON.stringify(fechas));
-        ordenarYMostrarFechas();
-        programarNotificacion(fechas[index]);
+        const fechas = obtenerFechas();
+        const fechaIndex = fechas.findIndex(f => f.id === fechaObj.id);
+        if (fechaIndex !== -1) {
+          fechas[fechaIndex].prioritaria = !fechas[fechaIndex].prioritaria;
+          guardarFechas(fechas);
+          ordenarYMostrarFechas();
+          programarNotificacion(fechas[fechaIndex]);
+        }
       };
       divBotones.appendChild(btnPrioridad);
       
@@ -412,9 +653,9 @@
       const btn = document.createElement('button');
       btn.textContent = 'Borrar';
       btn.onclick = () => {
-        const fechas = JSON.parse(localStorage.getItem('fechas') || '[]');
-        fechas.splice(index, 1);
-        localStorage.setItem('fechas', JSON.stringify(fechas));
+        const fechas = obtenerFechas();
+        const fechasFiltradas = fechas.filter(f => f.id !== fechaObj.id);
+        guardarFechas(fechasFiltradas);
         ordenarYMostrarFechas();
       };
       divBotones.appendChild(btn);
@@ -463,15 +704,16 @@
     }
 
     function programarTodasLasNotificaciones() {
-      const fechas = JSON.parse(localStorage.getItem('fechas') || '[]');
+      const fechas = obtenerFechas();
       fechas.forEach(f => programarNotificacion(f));
     }
 
     agregarFecha.onclick = () => {
       if (nuevaFecha.value && descripcionFecha.value.trim()) {
-        const fechas = JSON.parse(localStorage.getItem('fechas') || '[]');
+        const fechas = obtenerFechas();
         
         const nuevaFechaObj = {
+          id: generarId(),
           fechaISO: nuevaFecha.value,
           hora: horaFecha.value,
           descripcion: descripcionFecha.value.trim(),
@@ -479,7 +721,7 @@
         };
         
         fechas.push(nuevaFechaObj);
-        localStorage.setItem('fechas', JSON.stringify(fechas));
+        guardarFechas(fechas);
         
         nuevaFecha.value = '';
         horaFecha.value = '';
