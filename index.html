@@ -27,15 +27,18 @@
       display: flex;
       justify-content: center;
       background: #e1ecfa;
+      overflow-x: auto;
     }
     nav button {
       flex: 1;
       padding: 12px;
       border: none;
       background: none;
-      font-size: 1em;
+      font-size: 0.95em;
       color: #1b3b5f;
       font-weight: 600;
+      white-space: nowrap;
+      min-width: 80px;
     }
     nav button.active {
       border-bottom: 3px solid #3a7bd5;
@@ -197,6 +200,99 @@
       font-size: 1.2em;
       user-select: none;
     }
+
+    /* Estilos para Horario/Dipa */
+    .documento-container {
+      background: white;
+      border-radius: 8px;
+      padding: 20px;
+      margin-top: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+    .documento-container h4 {
+      color: #1b3b5f;
+      margin-top: 0;
+      margin-bottom: 15px;
+      font-size: 1.1em;
+    }
+    .documento-vacio {
+      text-align: center;
+      padding: 30px 20px;
+      color: #597ca2;
+      background: #f8f9fa;
+      border-radius: 6px;
+      border: 2px dashed #c2d4f2;
+    }
+    .documento-vacio p {
+      margin: 5px 0;
+    }
+    .documento-imagen-wrapper {
+      position: relative;
+      margin: 15px 0;
+    }
+    .documento-imagen {
+      width: 100%;
+      max-width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      cursor: pointer;
+      transition: transform 0.2s;
+    }
+    .documento-imagen:hover {
+      transform: scale(1.02);
+    }
+    .btn-cambiar {
+      background-color: #f39c12;
+      margin-top: 10px;
+    }
+    .btn-eliminar {
+      background-color: #c0392b;
+      margin-left: 5px;
+    }
+    .input-file {
+      display: none;
+    }
+    .separador {
+      height: 2px;
+      background: linear-gradient(to right, transparent, #c2d4f2, transparent);
+      margin: 30px 0;
+    }
+
+    /* Modal de zoom */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0,0,0,0.9);
+      overflow: auto;
+    }
+    .modal.active {
+      display: block;
+    }
+    .modal-content {
+      margin: auto;
+      display: block;
+      width: 90%;
+      max-width: 900px;
+      margin-top: 50px;
+    }
+    .modal-close {
+      position: absolute;
+      top: 15px;
+      right: 35px;
+      color: #f1f1f1;
+      font-size: 40px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .modal-close:hover {
+      color: #bbb;
+    }
+
     footer {
       text-align: center;
       font-size: 0.8em;
@@ -210,6 +306,7 @@
   <nav>
     <button id="btnTareas" class="active">Tareas</button>
     <button id="btnFechas">Fechas</button>
+    <button id="btnHorario">Horario/Dipa</button>
     <button id="btnCompra">Compra</button>
   </nav>
   <main>
@@ -227,6 +324,7 @@
       </div>
       <ul id="listaTareas"></ul>
     </section>
+
     <section id="fechas">
       <h3>Fechas importantes</h3>
       <div>
@@ -242,6 +340,47 @@
       </div>
       <ul id="listaFechas"></ul>
     </section>
+
+    <section id="horario">
+      <h3>📚 Horario / Dipa</h3>
+      
+      <!-- HORARIO ESCOLAR -->
+      <div class="documento-container">
+        <h4>📅 Horario Escolar</h4>
+        <div id="horarioVacio" class="documento-vacio">
+          <p>📸 Sube una foto de tu horario</p>
+        </div>
+        <div id="horarioContenido" style="display: none;">
+          <div class="documento-imagen-wrapper">
+            <img id="imagenHorario" class="documento-imagen" alt="Horario escolar">
+          </div>
+          <button id="btnCambiarHorario" class="btn-cambiar">📷 Cambiar foto</button>
+          <button id="btnEliminarHorario" class="btn-eliminar">🗑️ Eliminar</button>
+        </div>
+        <input type="file" id="inputHorario" class="input-file" accept="image/*" capture="environment">
+        <button id="btnSubirHorario">📸 Subir Horario</button>
+      </div>
+
+      <div class="separador"></div>
+
+      <!-- TARJETA DIPA -->
+      <div class="documento-container">
+        <h4>🎫 Tarjeta DIPA</h4>
+        <div id="dipaVacio" class="documento-vacio">
+          <p>📸 Sube una foto de tu tarjeta DIPA</p>
+        </div>
+        <div id="dipaContenido" style="display: none;">
+          <div class="documento-imagen-wrapper">
+            <img id="imagenDipa" class="documento-imagen" alt="Tarjeta DIPA">
+          </div>
+          <button id="btnCambiarDipa" class="btn-cambiar">📷 Cambiar foto</button>
+          <button id="btnEliminarDipa" class="btn-eliminar">🗑️ Eliminar</button>
+        </div>
+        <input type="file" id="inputDipa" class="input-file" accept="image/*" capture="environment">
+        <button id="btnSubirDipa">📸 Subir DIPA</button>
+      </div>
+    </section>
+
     <section id="compra">
       <h3>Lista de la compra</h3>
       <input id="nuevoProducto" type="text" placeholder="Escribe un producto...">
@@ -250,6 +389,13 @@
       <ul id="listaCompra"></ul>
     </section>
   </main>
+
+  <!-- Modal para zoom de imagen -->
+  <div id="modalZoom" class="modal">
+    <span class="modal-close" id="cerrarModal">&times;</span>
+    <img class="modal-content" id="imagenZoom">
+  </div>
+
   <footer>© CEIP Capitulaciones · Victask</footer>
 
   <script>
@@ -261,21 +407,145 @@
     // Cambio de secciones
     const btnTareas = document.getElementById('btnTareas');
     const btnFechas = document.getElementById('btnFechas');
+    const btnHorario = document.getElementById('btnHorario');
     const btnCompra = document.getElementById('btnCompra');
     const secTareas = document.getElementById('tareas');
     const secFechas = document.getElementById('fechas');
+    const secHorario = document.getElementById('horario');
     const secCompra = document.getElementById('compra');
 
     function activarSeccion(seccionActiva, botonActivo) {
-      [secTareas, secFechas, secCompra].forEach(s => s.classList.remove('active'));
-      [btnTareas, btnFechas, btnCompra].forEach(b => b.classList.remove('active'));
+      [secTareas, secFechas, secHorario, secCompra].forEach(s => s.classList.remove('active'));
+      [btnTareas, btnFechas, btnHorario, btnCompra].forEach(b => b.classList.remove('active'));
       seccionActiva.classList.add('active');
       botonActivo.classList.add('active');
     }
 
     btnTareas.onclick = () => activarSeccion(secTareas, btnTareas);
     btnFechas.onclick = () => activarSeccion(secFechas, btnFechas);
+    btnHorario.onclick = () => activarSeccion(secHorario, btnHorario);
     btnCompra.onclick = () => activarSeccion(secCompra, btnCompra);
+
+    // HORARIO
+    const inputHorario = document.getElementById('inputHorario');
+    const btnSubirHorario = document.getElementById('btnSubirHorario');
+    const btnCambiarHorario = document.getElementById('btnCambiarHorario');
+    const btnEliminarHorario = document.getElementById('btnEliminarHorario');
+    const imagenHorario = document.getElementById('imagenHorario');
+    const horarioVacio = document.getElementById('horarioVacio');
+    const horarioContenido = document.getElementById('horarioContenido');
+
+    // DIPA
+    const inputDipa = document.getElementById('inputDipa');
+    const btnSubirDipa = document.getElementById('btnSubirDipa');
+    const btnCambiarDipa = document.getElementById('btnCambiarDipa');
+    const btnEliminarDipa = document.getElementById('btnEliminarDipa');
+    const imagenDipa = document.getElementById('imagenDipa');
+    const dipaVacio = document.getElementById('dipaVacio');
+    const dipaContenido = document.getElementById('dipaContenido');
+
+    // Modal
+    const modalZoom = document.getElementById('modalZoom');
+    const imagenZoom = document.getElementById('imagenZoom');
+    const cerrarModal = document.getElementById('cerrarModal');
+
+    function cargarHorario() {
+      const horarioGuardado = localStorage.getItem('horarioImagen');
+      if (horarioGuardado) {
+        imagenHorario.src = horarioGuardado;
+        horarioVacio.style.display = 'none';
+        horarioContenido.style.display = 'block';
+        btnSubirHorario.style.display = 'none';
+      } else {
+        horarioVacio.style.display = 'block';
+        horarioContenido.style.display = 'none';
+        btnSubirHorario.style.display = 'inline-block';
+      }
+    }
+
+    function cargarDipa() {
+      const dipaGuardado = localStorage.getItem('dipaImagen');
+      if (dipaGuardado) {
+        imagenDipa.src = dipaGuardado;
+        dipaVacio.style.display = 'none';
+        dipaContenido.style.display = 'block';
+        btnSubirDipa.style.display = 'none';
+      } else {
+        dipaVacio.style.display = 'block';
+        dipaContenido.style.display = 'none';
+        btnSubirDipa.style.display = 'inline-block';
+      }
+    }
+
+    btnSubirHorario.onclick = () => inputHorario.click();
+    btnCambiarHorario.onclick = () => inputHorario.click();
+
+    btnSubirDipa.onclick = () => inputDipa.click();
+    btnCambiarDipa.onclick = () => inputDipa.click();
+
+    inputHorario.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const imagenBase64 = event.target.result;
+          localStorage.setItem('horarioImagen', imagenBase64);
+          cargarHorario();
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    inputDipa.onchange = (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const imagenBase64 = event.target.result;
+          localStorage.setItem('dipaImagen', imagenBase64);
+          cargarDipa();
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+
+    btnEliminarHorario.onclick = () => {
+      if (confirm('¿Seguro que quieres eliminar el horario?')) {
+        localStorage.removeItem('horarioImagen');
+        cargarHorario();
+      }
+    };
+
+    btnEliminarDipa.onclick = () => {
+      if (confirm('¿Seguro que quieres eliminar la tarjeta DIPA?')) {
+        localStorage.removeItem('dipaImagen');
+        cargarDipa();
+      }
+    };
+
+    // Zoom de imagen
+    imagenHorario.onclick = () => {
+      modalZoom.classList.add('active');
+      imagenZoom.src = imagenHorario.src;
+    };
+
+    imagenDipa.onclick = () => {
+      modalZoom.classList.add('active');
+      imagenZoom.src = imagenDipa.src;
+    };
+
+    cerrarModal.onclick = () => {
+      modalZoom.classList.remove('active');
+    };
+
+    modalZoom.onclick = (e) => {
+      if (e.target === modalZoom) {
+        modalZoom.classList.remove('active');
+      }
+    };
+
+    cargarHorario();
+    cargarDipa();
 
     // Tareas con drag & drop
     const listaTareas = document.getElementById('listaTareas');
@@ -761,6 +1031,7 @@
     }
     function añadirProducto(texto) {
       const li = document.createElement('li');
+      li.style.cursor = 'default';
       const span = document.createElement('span');
       span.textContent = texto;
       li.appendChild(span);
