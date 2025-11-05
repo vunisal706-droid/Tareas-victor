@@ -279,6 +279,12 @@
       width: 90%;
       max-width: 900px;
       margin-top: 50px;
+      touch-action: none;
+      cursor: grab;
+      transition: transform 0.2s ease;
+    }
+    .modal-content:active {
+      cursor: grabbing;
     }
     .modal-close {
       position: absolute;
@@ -444,6 +450,42 @@
     const dipaVacio = document.getElementById('dipaVacio');
     const dipaContenido = document.getElementById('dipaContenido');
 
+    // Función para comprimir imágenes
+    function comprimirImagen(file, callback) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // Reducir tamaño si es muy grande
+          const maxDimension = 1200;
+          if (width > maxDimension || height > maxDimension) {
+            if (width > height) {
+              height = (height / width) * maxDimension;
+              width = maxDimension;
+            } else {
+              width = (width / height) * maxDimension;
+              height = maxDimension;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // Comprimir a calidad 0.7 (70%)
+          const imagenComprimida = canvas.toDataURL('image/jpeg', 0.7);
+          callback(imagenComprimida);
+        };
+        img.src = e.target.result;
+      };
+      reader.readAsDataURL(file);
+    }
+
     // Modal
     const modalZoom = document.getElementById('modalZoom');
     const imagenZoom = document.getElementById('imagenZoom');
@@ -486,26 +528,32 @@
     inputHorario.onchange = (e) => {
       const file = e.target.files[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const imagenBase64 = event.target.result;
-          localStorage.setItem('horarioImagen', imagenBase64);
-          cargarHorario();
-        };
-        reader.readAsDataURL(file);
+        comprimirImagen(file, (imagenComprimida) => {
+          try {
+            localStorage.setItem('horarioImagen', imagenComprimida);
+            cargarHorario();
+            console.log('✅ Horario guardado correctamente');
+          } catch (error) {
+            console.error('Error al guardar horario:', error);
+            alert('❌ Error: La imagen es demasiado grande. Intenta con una foto de menor resolución.');
+          }
+        });
       }
     };
 
     inputDipa.onchange = (e) => {
       const file = e.target.files[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = (event) => {
-          const imagenBase64 = event.target.result;
-          localStorage.setItem('dipaImagen', imagenBase64);
-          cargarDipa();
-        };
-        reader.readAsDataURL(file);
+        comprimirImagen(file, (imagenComprimida) => {
+          try {
+            localStorage.setItem('dipaImagen', imagenComprimida);
+            cargarDipa();
+            console.log('✅ Tarjeta DIPA guardada correctamente');
+          } catch (error) {
+            console.error('Error al guardar DIPA:', error);
+            alert('❌ Error: La imagen es demasiado grande. Intenta con una foto de menor resolución.');
+          }
+        });
       }
     };
 
@@ -524,25 +572,136 @@
     };
 
     // Zoom de imagen
+    let scale = 1;
+    let panning = false;
+    let pointX = 0;
+    let pointY = 0;
+    let start = { x: 0, y: 0 };
+
+    function resetZoom() {
+      scale = 1;
+      imagenZoom.style.transform = `translate(0px, 0px) scale(1)`;
+      imagenZoom.style.transformOrigin = 'center center';
+    }
+
     imagenHorario.onclick = () => {
       modalZoom.classList.add('active');
       imagenZoom.src = imagenHorario.src;
+      resetZoom();
     };
 
     imagenDipa.onclick = () => {
       modalZoom.classList.add('active');
       imagenZoom.src = imagenDipa.src;
+      resetZoom();
     };
 
     cerrarModal.onclick = () => {
       modalZoom.classList.remove('active');
+      resetZoom();
     };
 
     modalZoom.onclick = (e) => {
       if (e.target === modalZoom) {
         modalZoom.classList.remove('active');
+        resetZoom();
       }
     };
+
+    // Soporte para zoom con rueda del ratón (escritorio)
+    imagenZoom.onwheel = (e) => {
+      e.preventDefault();
+      const xs = (e.clientX - pointX) / scale;
+      const ys = (e.clientY - pointY) / scale;
+      const delta = e.wheelDelta ? e.wheelDelta : -e.deltaY;
+      
+      if (delta > 0) {
+        scale *= 1.2;
+      } else {
+        scale /= 1.2;
+      }
+      
+      scale = Math.max(1, Math.min(5, scale)); // Limitar entre 1x y 5x
+      
+      pointX = e.clientX - xs * scale;
+      pointY = e.clientY - ys * scale;
+      
+      imagenZoom.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+      imagenZoom.style.transformOrigin = '0 0';
+    };
+
+    // Soporte para pinch-to-zoom en móvil
+    let initialDistance = 0;
+    let currentScale = 1;
+
+    imagenZoom.addEventListener('touchstart', (e) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        initialDistance = Math.hypot(
+          e.touches[0].pageX - e.touches[1].pageX,
+          e.touches[0].pageY - e.touches[1].pageY
+        );
+        currentScale = scale;
+      } else if (e.touches.length === 1 && scale > 1) {
+        panning = true;
+        start = { x: e.touches[0].clientX - pointX, y: e.touches[0].clientY - pointY };
+      }
+    });
+
+    imagenZoom.addEventListener('touchmove', (e) => {
+      if (e.touches.length === 2) {
+        e.preventDefault();
+        const distance = Math.hypot(
+          e.touches[0].pageX - e.touches[1].pageX,
+          e.touches[0].pageY - e.touches[1].pageY
+        );
+        
+        scale = currentScale * (distance / initialDistance);
+        scale = Math.max(1, Math.min(5, scale)); // Limitar entre 1x y 5x
+        
+        imagenZoom.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+        imagenZoom.style.transformOrigin = '0 0';
+      } else if (e.touches.length === 1 && panning && scale > 1) {
+        e.preventDefault();
+        pointX = e.touches[0].clientX - start.x;
+        pointY = e.touches[0].clientY - start.y;
+        imagenZoom.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+      }
+    });
+
+    imagenZoom.addEventListener('touchend', (e) => {
+      if (e.touches.length === 0) {
+        panning = false;
+        // Si el zoom vuelve a 1, reiniciar posición
+        if (scale === 1) {
+          pointX = 0;
+          pointY = 0;
+          imagenZoom.style.transform = `translate(0px, 0px) scale(1)`;
+        }
+      }
+    });
+
+    // Doble toque para hacer zoom
+    let lastTap = 0;
+    imagenZoom.addEventListener('touchend', (e) => {
+      const currentTime = new Date().getTime();
+      const tapLength = currentTime - lastTap;
+      if (tapLength < 300 && tapLength > 0) {
+        // Doble toque detectado
+        if (scale === 1) {
+          scale = 2.5;
+          const rect = imagenZoom.getBoundingClientRect();
+          pointX = rect.width / 4;
+          pointY = rect.height / 4;
+        } else {
+          scale = 1;
+          pointX = 0;
+          pointY = 0;
+        }
+        imagenZoom.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+      }
+      lastTap = currentTime;
+    });
 
     cargarHorario();
     cargarDipa();
