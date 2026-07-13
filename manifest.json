@@ -1,24 +1,16 @@
 {
-  "name": "Victask",
+  "name": "Victask - Tareas Víctor",
   "short_name": "Victask",
-  "description": "Gestor de tareas, fechas y lista de la compra",
-  "start_url": "/Tareas-victor/",
-  "scope": "/Tareas-victor/",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
-  "background_color": "#f0f6ff",
-  "theme_color": "#3a7bd5",
+  "lang": "es",
+  "background_color": "#ffffff",
+  "theme_color": "#2563eb",
+  "description": "Aplicación para apuntar tareas y fechas importantes del colegio Capitulaciones.",
   "icons": [
-    {
-      "src": "/Tareas-victor/icon-192.png",
-      "sizes": "192x192",
-      "type": "image/png",
-      "purpose": "any maskable"
-    },
-    {
-      "src": "/Tareas-victor/icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any maskable"
-    }
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

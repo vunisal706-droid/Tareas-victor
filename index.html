@@ -2,1240 +2,1265 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="theme-color" content="#2563eb">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <title>Victask</title>
   <link rel="manifest" href="manifest.json">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="icon-180.png">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --color-primary: #2563eb;
+      --color-primary-light: #dbeafe;
+      --color-primary-dark: #1d4ed8;
+      --color-secondary: #7c3aed;
+      --color-bg: #f8fafc;
+      --color-surface: #ffffff;
+      --color-border: #e2e8f0;
+      --color-text: #1e293b;
+      --color-text-muted: #64748b;
+      --color-success: #16a34a; --color-success-bg: #dcfce7;
+      --color-error:   #dc2626; --color-error-bg:   #fee2e2;
+      --color-warning: #d97706; --color-warning-bg: #fef3c7;
+      --color-whatsapp: #25D366;
+      --radius: 12px;
+      --shadow-sm: 0 1px 3px rgba(15,23,42,0.08);
+      --shadow-md: 0 4px 12px rgba(15,23,42,0.10);
+    }
+    * { box-sizing: border-box; }
     body {
-      font-family: 'Inter', sans-serif;
-      background-color: #f0f6ff;
-      color: #1b3b5f;
+      font-family: 'Inter', system-ui, sans-serif;
+      background: var(--color-bg);
+      color: var(--color-text);
       margin: 0;
-      padding: 0;
+      padding-bottom: env(safe-area-inset-bottom);
+      -webkit-tap-highlight-color: transparent;
     }
     header {
-      background: linear-gradient(90deg, #3a7bd5, #3a6073);
-      color: white;
-      text-align: center;
-      padding: 15px 0;
-      font-size: 1.5em;
-      font-weight: 600;
-      letter-spacing: 1px;
+      background: linear-gradient(120deg, var(--color-primary), var(--color-secondary));
+      color: #fff;
+      padding: calc(14px + env(safe-area-inset-top)) 16px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: var(--shadow-md);
+    }
+    header h1 { font-size: 1.25rem; font-weight: 800; margin: 0; letter-spacing: 0.5px; }
+    .header-btn {
+      background: rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.35);
+      color: #fff;
+      border-radius: 10px;
+      min-width: 44px;
+      min-height: 44px;
+      font-size: 1.1rem;
+      cursor: pointer;
     }
     nav {
       display: flex;
-      justify-content: center;
-      background: #e1ecfa;
+      background: var(--color-surface);
+      border-bottom: 1px solid var(--color-border);
       overflow-x: auto;
+      position: sticky;
+      top: calc(56px + env(safe-area-inset-top));
+      z-index: 40;
     }
     nav button {
       flex: 1;
-      padding: 12px;
+      min-width: 84px;
+      min-height: 48px;
+      padding: 10px 8px;
       border: none;
       background: none;
-      font-size: 0.95em;
-      color: #1b3b5f;
+      font-family: inherit;
+      font-size: 0.9rem;
       font-weight: 600;
+      color: var(--color-text-muted);
       white-space: nowrap;
-      min-width: 80px;
-    }
-    nav button.active {
-      border-bottom: 3px solid #3a7bd5;
-    }
-    main {
-      padding: 20px;
-    }
-    section { display: none; }
-    section.active { display: block; }
-
-    input, button {
-      padding: 10px;
-      font-size: 1em;
-      border-radius: 6px;
-      border: 1px solid #c2d4f2;
-    }
-    button {
-      background-color: #3a7bd5;
-      color: white;
-      font-weight: 600;
-      border: none;
-      margin-left: 6px;
-    }
-    ul {
-      list-style: none;
-      padding: 0;
-    }
-    li {
-      background: #ffffff;
-      margin: 8px 0;
-      padding: 12px;
-      border-radius: 8px;
+      border-bottom: 3px solid transparent;
+      cursor: pointer;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
-      cursor: move;
-      transition: all 0.2s ease;
+      justify-content: center;
+      gap: 6px;
     }
-    li:hover {
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    nav button.active { color: var(--color-primary); border-bottom-color: var(--color-primary); }
+    .badge {
+      background: var(--color-primary-light);
+      color: var(--color-primary-dark);
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 2px 8px;
+      min-width: 22px;
+      text-align: center;
     }
-    li.dragging {
-      opacity: 0.5;
-      transform: scale(1.02);
+    nav button:not(.active) .badge { background: var(--color-border); color: var(--color-text-muted); }
+    main { padding: 18px 16px 60px; max-width: 760px; margin: 0 auto; }
+    section { display: none; }
+    section.active { display: block; animation: fadeInUp 0.25s ease; }
+    h3 { margin: 4px 0 14px; font-size: 1.15rem; }
+
+    /* ---- Formularios ---- */
+    .form-card {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 14px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+      margin-bottom: 16px;
     }
-    li.drag-over {
-      border-top: 3px solid #3a7bd5;
+    .form-card .full { flex: 1 1 100%; }
+    input[type="text"], input[type="date"], input[type="time"] {
+      font-family: inherit;
+      font-size: 1rem;
+      padding: 11px 12px;
+      border-radius: 10px;
+      border: 1px solid var(--color-border);
+      background: #fff;
+      color: var(--color-text);
+      min-height: 44px;
     }
-    li.prioritaria {
-      background: #ffe6e6;
-      border-left: 4px solid #c0392b;
+    input[type="text"] { flex: 1 1 200px; }
+    input:focus-visible, button:focus-visible {
+      outline: 3px solid var(--color-primary);
+      outline-offset: 2px;
     }
-    li.pasada {
-      opacity: 0.6;
-      background: #f5f5f5;
-    }
-    li.vencida {
-      background: #fff3cd;
-      border-left: 4px solid #f39c12;
-    }
-    li button {
-      background-color: #c0392b;
+    .btn {
+      font-family: inherit;
+      font-size: 0.95rem;
+      font-weight: 600;
+      padding: 11px 16px;
+      min-height: 44px;
+      border-radius: 10px;
       border: none;
-      padding: 6px 10px;
-      border-radius: 4px;
-      color: white;
-      font-size: 0.9em;
-    }
-    li button.whatsapp {
-      background-color: #25D366;
-      margin-right: 5px;
-      padding: 8px;
-      width: 36px;
-      height: 36px;
+      cursor: pointer;
+      background: var(--color-primary);
+      color: #fff;
+      transition: transform 0.1s, box-shadow 0.1s, background 0.15s;
       display: inline-flex;
       align-items: center;
       justify-content: center;
+      gap: 6px;
     }
-    li button.whatsapp svg {
-      width: 20px;
-      height: 20px;
-      fill: white;
+    .btn:hover { background: var(--color-primary-dark); }
+    .btn:active { transform: scale(0.96); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-warning { background: var(--color-warning); }
+    .btn-warning:hover { background: #b45309; }
+    .btn-success { background: var(--color-success); }
+    .btn-success:hover { background: #15803d; }
+    .btn-whatsapp { background: var(--color-whatsapp); }
+    .btn-whatsapp:hover { background: #1eb455; }
+    .btn-danger { background: var(--color-error); }
+    .btn-danger:hover { background: #b91c1c; }
+    .btn-ghost {
+      background: var(--color-surface);
+      color: var(--color-text);
+      border: 1px solid var(--color-border);
     }
-    li button.prioridad {
-      background-color: #f39c12;
-      margin-right: 5px;
-      padding: 6px 10px;
+    .btn-ghost:hover { background: var(--color-bg); }
+    .checkbox-container { display: inline-flex; align-items: center; gap: 6px; }
+    .checkbox-container input { width: 20px; height: 20px; accent-color: var(--color-error); margin: 0; }
+    .checkbox-container label { font-size: 0.9rem; color: var(--color-error); font-weight: 600; }
+    .hint { font-size: 0.85rem; color: var(--color-text-muted); }
+
+    /* ---- Listas ---- */
+    ul { list-style: none; padding: 0; margin: 0; }
+    li.item {
+      background: var(--color-surface);
+      margin: 10px 0;
+      padding: 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.2s, transform 0.2s, opacity 0.2s;
     }
-    li button.prioridad.activa {
-      background-color: #c0392b;
+    li.item:hover { box-shadow: var(--shadow-md); }
+    li.dragging { opacity: 0.45; transform: scale(1.02); }
+    li.drag-over { border-top: 3px solid var(--color-primary); }
+    li.prioritaria { background: var(--color-error-bg); border-left: 4px solid var(--color-error); }
+    li.vencida { background: var(--color-warning-bg); border-left: 4px solid var(--color-warning); }
+    li.pasada { opacity: 0.6; }
+    li.hecha { opacity: 0.65; background: var(--color-bg); }
+    li.hecha .item-texto { text-decoration: line-through; color: var(--color-text-muted); }
+    .drag-handle {
+      cursor: grab;
+      touch-action: none;
+      padding: 8px 6px;
+      color: var(--color-text-muted);
+      font-size: 1.1rem;
+      user-select: none;
+      -webkit-user-select: none;
     }
-    .checkbox-container {
+    .item-info { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .item-texto { font-weight: 400; overflow-wrap: anywhere; }
+    .item-sub { font-size: 0.83rem; color: var(--color-text-muted); margin-top: 4px; }
+    .item-sub.alerta { color: var(--color-warning); font-weight: 600; }
+    .item-botones { display: flex; gap: 6px; flex-shrink: 0; }
+    .icon-btn {
+      border: none;
+      border-radius: 10px;
+      min-width: 42px;
+      min-height: 42px;
+      font-size: 1rem;
+      cursor: pointer;
       display: inline-flex;
       align-items: center;
-      margin-left: 10px;
+      justify-content: center;
+      transition: transform 0.1s;
+      color: #fff;
     }
-    .checkbox-container input {
-      margin: 0 5px 0 0;
-      width: auto;
-    }
-    .checkbox-container label {
-      margin: 0;
-      font-size: 0.9em;
-      color: #c0392b;
-      font-weight: 600;
-    }
-    .tarea-info {
+    .icon-btn:active { transform: scale(0.92); }
+    .icon-btn svg { width: 20px; height: 20px; fill: currentColor; }
+    .icon-btn.prioridad { background: var(--color-warning); }
+    .icon-btn.prioridad.activa { background: var(--color-error); }
+    .icon-btn.whatsapp { background: var(--color-whatsapp); }
+    .icon-btn.editar { background: var(--color-surface); color: var(--color-text-muted); border: 1px solid var(--color-border); }
+    .icon-btn.borrar { background: var(--color-error); }
+    .icon-btn.hecho { background: var(--color-success); }
+    .icon-btn.deshacer { background: var(--color-text-muted); }
+    .edit-input {
       flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-    .tarea-texto {
-      font-weight: 400;
-    }
-    .tarea-fecha-vencimiento {
-      font-size: 0.85em;
-      color: #597ca2;
-      margin-top: 4px;
-    }
-    .fecha-info {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-    }
-    .fecha-texto {
-      font-weight: 600;
-    }
-    .fecha-dias {
-      font-size: 0.85em;
-      color: #597ca2;
-      margin-top: 4px;
-    }
-    .botones-fecha {
-      display: flex;
-      gap: 5px;
-    }
-    .botones-tarea {
-      display: flex;
-      gap: 5px;
-    }
-    .input-opcional {
-      margin-top: 8px;
-      font-size: 0.9em;
-    }
-    #btnNotificaciones {
-      background-color: #f39c12;
-      margin-left: 10px;
-      padding: 8px 12px;
-      font-size: 0.9em;
-    }
-    #btnNotificaciones.activo {
-      background-color: #27ae60;
-    }
-    .drag-handle {
-      cursor: move;
-      padding: 0 8px;
-      color: #597ca2;
-      font-size: 1.2em;
-      user-select: none;
-    }
-
-    /* Estilos para Horario/Dipa */
-    .documento-container {
-      background: white;
+      font-family: inherit;
+      font-size: 1rem;
+      padding: 8px 10px;
       border-radius: 8px;
-      padding: 20px;
+      border: 2px solid var(--color-primary);
+    }
+    .lista-titulo {
+      font-size: 0.85rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--color-text-muted);
+      margin: 22px 0 4px;
+    }
+    .empty-state {
+      text-align: center;
+      padding: 36px 20px;
+      color: var(--color-text-muted);
+      background: var(--color-surface);
+      border: 2px dashed var(--color-border);
+      border-radius: var(--radius);
+      margin-top: 14px;
+    }
+    .empty-state .emoji { font-size: 2rem; display: block; margin-bottom: 8px; }
+
+    /* ---- Documentos (Horario/DIPA) ---- */
+    .documento-container {
+      background: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius);
+      padding: 18px;
       margin-top: 15px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+      box-shadow: var(--shadow-sm);
     }
-    .documento-container h4 {
-      color: #1b3b5f;
-      margin-top: 0;
-      margin-bottom: 15px;
-      font-size: 1.1em;
-    }
+    .documento-container h4 { margin: 0 0 14px; font-size: 1.05rem; }
     .documento-vacio {
       text-align: center;
       padding: 30px 20px;
-      color: #597ca2;
-      background: #f8f9fa;
-      border-radius: 6px;
-      border: 2px dashed #c2d4f2;
-    }
-    .documento-vacio p {
-      margin: 5px 0;
-    }
-    .documento-imagen-wrapper {
-      position: relative;
-      margin: 15px 0;
+      color: var(--color-text-muted);
+      background: var(--color-bg);
+      border-radius: 10px;
+      border: 2px dashed var(--color-border);
+      margin-bottom: 12px;
     }
     .documento-imagen {
       width: 100%;
       max-width: 100%;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-      cursor: pointer;
-      transition: transform 0.2s;
+      border-radius: 10px;
+      box-shadow: var(--shadow-md);
+      cursor: zoom-in;
+      display: block;
+      margin-bottom: 12px;
     }
-    .documento-imagen:hover {
-      transform: scale(1.02);
-    }
-    .btn-cambiar {
-      background-color: #f39c12;
-      margin-top: 10px;
-    }
-    .btn-eliminar {
-      background-color: #c0392b;
-      margin-left: 5px;
-    }
-    .input-file {
-      display: none;
-    }
-    .separador {
-      height: 2px;
-      background: linear-gradient(to right, transparent, #c2d4f2, transparent);
-      margin: 30px 0;
-    }
+    .input-file { display: none; }
+    .separador { height: 1px; background: var(--color-border); margin: 26px 0; }
 
-    /* Modal de zoom */
+    /* ---- Modales ---- */
     .modal {
       display: none;
       position: fixed;
+      inset: 0;
       z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      background-color: rgba(0,0,0,0.9);
-      overflow: auto;
+      background: rgba(15,23,42,0.55);
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
     }
-    .modal.active {
-      display: block;
-    }
-    .modal-content {
-      margin: auto;
-      display: block;
-      width: 90%;
-      max-width: 900px;
-      margin-top: 50px;
+    .modal.active { display: flex; }
+    .modal-zoom-bg { background: rgba(15,23,42,0.92); }
+    .modal-content-img {
+      max-width: 95%;
+      max-height: 90%;
       touch-action: none;
       cursor: grab;
-      transition: transform 0.2s ease;
-    }
-    .modal-content:active {
-      cursor: grabbing;
+      border-radius: 8px;
     }
     .modal-close {
       position: absolute;
-      top: 15px;
-      right: 35px;
-      color: #f1f1f1;
-      font-size: 40px;
-      font-weight: bold;
+      top: calc(12px + env(safe-area-inset-top));
+      right: 16px;
+      color: #fff;
+      background: rgba(255,255,255,0.15);
+      border: none;
+      border-radius: 50%;
+      width: 44px;
+      height: 44px;
+      font-size: 1.4rem;
       cursor: pointer;
     }
-    .modal-close:hover {
-      color: #bbb;
+    .dialog {
+      background: var(--color-surface);
+      border-radius: 16px;
+      padding: 22px;
+      max-width: 380px;
+      width: 100%;
+      box-shadow: 0 20px 50px rgba(15,23,42,0.25);
+      animation: fadeInUp 0.2s ease;
+    }
+    .dialog p { margin: 0 0 18px; font-size: 1rem; }
+    .dialog-botones { display: flex; gap: 10px; justify-content: flex-end; }
+    .dialog h4 { margin: 0 0 14px; }
+
+    /* ---- Toasts ---- */
+    #toastContainer {
+      position: fixed;
+      bottom: calc(18px + env(safe-area-inset-bottom));
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      width: min(92vw, 420px);
+    }
+    .toast {
+      background: var(--color-text);
+      color: #fff;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 0.92rem;
+      font-weight: 600;
+      box-shadow: var(--shadow-md);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      animation: fadeInUp 0.25s ease;
+    }
+    .toast.success { background: var(--color-success); }
+    .toast.error { background: var(--color-error); }
+    .toast button {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: #fff;
+      font-family: inherit;
+      font-weight: 800;
+      border-radius: 8px;
+      padding: 6px 12px;
+      cursor: pointer;
+      min-height: 36px;
     }
 
-    footer {
-      text-align: center;
-      font-size: 0.8em;
-      color: #597ca2;
-      padding: 10px;
+    footer { text-align: center; font-size: 0.8rem; color: var(--color-text-muted); padding: 14px; }
+
+    @keyframes fadeInUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+    }
+    @media (max-width: 480px) {
+      .item-botones { flex-wrap: wrap; justify-content: flex-end; }
     }
   </style>
 </head>
 <body>
-  <header>✅ Victask</header>
+  <header>
+    <h1>✅ Victask</h1>
+    <button class="header-btn" id="btnBackup" aria-label="Copia de seguridad" title="Copia de seguridad">💾</button>
+  </header>
   <nav>
-    <button id="btnTareas" class="active">Tareas</button>
-    <button id="btnFechas">Fechas</button>
+    <button id="btnTareas" class="active">Tareas <span class="badge" id="badgeTareas">0</span></button>
+    <button id="btnFechas">Fechas <span class="badge" id="badgeFechas">0</span></button>
     <button id="btnHorario">Horario/Dipa</button>
-    <button id="btnCompra">Compra</button>
+    <button id="btnCompra">Compra <span class="badge" id="badgeCompra">0</span></button>
   </nav>
   <main>
+    <!-- ================= TAREAS ================= -->
     <section id="tareas" class="active">
       <h3>Tareas pendientes</h3>
-      <input id="nuevaTarea" type="text" placeholder="Escribe una tarea...">
-      <div class="checkbox-container">
-        <input id="checkPrioridadTarea" type="checkbox">
-        <label for="checkPrioridadTarea">⭐ Prioritaria</label>
-      </div>
-      <button id="agregarTarea">Añadir</button>
-      <div class="input-opcional">
-        <input id="fechaVencimientoTarea" type="date" placeholder="Fecha límite (opcional)" style="width: 180px;">
-        <label style="font-size: 0.85em; color: #597ca2; margin-left: 5px;">Fecha límite (opcional)</label>
+      <div class="form-card">
+        <input id="nuevaTarea" type="text" placeholder="Escribe una tarea..." aria-label="Nueva tarea">
+        <div class="checkbox-container">
+          <input id="checkPrioridadTarea" type="checkbox">
+          <label for="checkPrioridadTarea">⭐ Prioritaria</label>
+        </div>
+        <button id="agregarTarea" class="btn">Añadir</button>
+        <div class="full" style="display:flex; align-items:center; gap:8px;">
+          <label class="hint" for="fechaVencimientoTarea">Fecha límite (opcional):</label>
+          <input id="fechaVencimientoTarea" type="date">
+        </div>
       </div>
       <ul id="listaTareas"></ul>
+      <div id="tareasVacio" class="empty-state" style="display:none;">
+        <span class="emoji">🎉</span>No tienes tareas pendientes
+      </div>
+      <div id="tituloHechas" class="lista-titulo" style="display:none;">Completadas</div>
+      <ul id="listaHechas"></ul>
     </section>
 
+    <!-- ================= FECHAS ================= -->
     <section id="fechas">
       <h3>Fechas importantes</h3>
-      <div>
-        <input id="nuevaFecha" type="date">
-        <input id="horaFecha" type="time">
-        <input id="descripcionFecha" type="text" placeholder="Descripción o evento...">
+      <div class="form-card">
+        <input id="nuevaFecha" type="date" aria-label="Fecha">
+        <input id="horaFecha" type="time" aria-label="Hora">
+        <input id="descripcionFecha" type="text" placeholder="Descripción o evento..." aria-label="Descripción del evento">
         <div class="checkbox-container">
           <input id="checkPrioridad" type="checkbox">
           <label for="checkPrioridad">⭐ Prioritaria</label>
         </div>
-        <button id="agregarFecha">Añadir</button>
-        <button id="btnNotificaciones">🔔 Activar Notificaciones</button>
+        <button id="agregarFecha" class="btn">Añadir</button>
+        <button id="btnNotificaciones" class="btn btn-warning">🔔 Activar Notificaciones</button>
       </div>
       <ul id="listaFechas"></ul>
+      <div id="fechasVacio" class="empty-state" style="display:none;">
+        <span class="emoji">📅</span>No hay fechas próximas
+      </div>
     </section>
 
+    <!-- ================= HORARIO / DIPA ================= -->
     <section id="horario">
       <h3>📚 Horario / Dipa</h3>
-      
-      <!-- HORARIO ESCOLAR -->
       <div class="documento-container">
         <h4>📅 Horario Escolar</h4>
-        <div id="horarioVacio" class="documento-vacio">
-          <p>📸 Sube una foto de tu horario</p>
-        </div>
-        <div id="horarioContenido" style="display: none;">
-          <div class="documento-imagen-wrapper">
-            <img id="imagenHorario" class="documento-imagen" alt="Horario escolar">
-          </div>
-          <button id="btnCambiarHorario" class="btn-cambiar">📷 Cambiar foto</button>
-          <button id="btnEliminarHorario" class="btn-eliminar">🗑️ Eliminar</button>
+        <div id="horarioVacio" class="documento-vacio"><p>📸 Sube una foto de tu horario</p></div>
+        <div id="horarioContenido" style="display:none;">
+          <img id="imagenHorario" class="documento-imagen" alt="Horario escolar">
+          <button id="btnCambiarHorario" class="btn btn-warning">📷 Cambiar foto</button>
+          <button id="btnEliminarHorario" class="btn btn-danger">🗑️ Eliminar</button>
         </div>
         <input type="file" id="inputHorario" class="input-file" accept="image/*" capture="environment">
-        <button id="btnSubirHorario">📸 Subir Horario</button>
+        <button id="btnSubirHorario" class="btn">📸 Subir Horario</button>
       </div>
-
       <div class="separador"></div>
-
-      <!-- TARJETA DIPA -->
       <div class="documento-container">
         <h4>🎫 Tarjeta DIPA</h4>
-        <div id="dipaVacio" class="documento-vacio">
-          <p>📸 Sube una foto de tu tarjeta DIPA</p>
-        </div>
-        <div id="dipaContenido" style="display: none;">
-          <div class="documento-imagen-wrapper">
-            <img id="imagenDipa" class="documento-imagen" alt="Tarjeta DIPA">
-          </div>
-          <button id="btnCambiarDipa" class="btn-cambiar">📷 Cambiar foto</button>
-          <button id="btnEliminarDipa" class="btn-eliminar">🗑️ Eliminar</button>
+        <div id="dipaVacio" class="documento-vacio"><p>📸 Sube una foto de tu tarjeta DIPA</p></div>
+        <div id="dipaContenido" style="display:none;">
+          <img id="imagenDipa" class="documento-imagen" alt="Tarjeta DIPA">
+          <button id="btnCambiarDipa" class="btn btn-warning">📷 Cambiar foto</button>
+          <button id="btnEliminarDipa" class="btn btn-danger">🗑️ Eliminar</button>
         </div>
         <input type="file" id="inputDipa" class="input-file" accept="image/*" capture="environment">
-        <button id="btnSubirDipa">📸 Subir DIPA</button>
+        <button id="btnSubirDipa" class="btn">📸 Subir DIPA</button>
       </div>
     </section>
 
+    <!-- ================= COMPRA ================= -->
     <section id="compra">
       <h3>Lista de la compra</h3>
-      <input id="nuevoProducto" type="text" placeholder="Escribe un producto...">
-      <button id="agregarProducto">Añadir</button>
-      <button id="compartirTodaLista" style="background-color: #25D366; margin-left: 10px;">📤 Compartir Lista</button>
+      <div class="form-card">
+        <input id="nuevoProducto" type="text" placeholder="Escribe un producto..." aria-label="Nuevo producto">
+        <button id="agregarProducto" class="btn">Añadir</button>
+        <button id="compartirTodaLista" class="btn btn-whatsapp">📤 Compartir Lista</button>
+      </div>
       <ul id="listaCompra"></ul>
+      <div id="compraVacio" class="empty-state" style="display:none;">
+        <span class="emoji">🛒</span>La lista está vacía
+      </div>
     </section>
   </main>
 
-  <!-- Modal para zoom de imagen -->
-  <div id="modalZoom" class="modal">
-    <span class="modal-close" id="cerrarModal">&times;</span>
-    <img class="modal-content" id="imagenZoom">
+  <!-- Modal zoom imagen -->
+  <div id="modalZoom" class="modal modal-zoom-bg" role="dialog" aria-modal="true" aria-label="Imagen ampliada">
+    <button class="modal-close" id="cerrarModal" aria-label="Cerrar">✕</button>
+    <img class="modal-content-img" id="imagenZoom" alt="Imagen ampliada">
   </div>
 
+  <!-- Modal confirmación -->
+  <div id="modalConfirm" class="modal" role="dialog" aria-modal="true">
+    <div class="dialog">
+      <p id="confirmTexto"></p>
+      <div class="dialog-botones">
+        <button id="confirmCancelar" class="btn btn-ghost">Cancelar</button>
+        <button id="confirmAceptar" class="btn btn-danger">Eliminar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal backup -->
+  <div id="modalBackup" class="modal" role="dialog" aria-modal="true" aria-label="Copia de seguridad">
+    <div class="dialog">
+      <h4>💾 Copia de seguridad</h4>
+      <p class="hint">Tus datos se guardan solo en este dispositivo. Exporta una copia para no perderlos o pásalos a otro móvil.</p>
+      <div class="dialog-botones" style="justify-content: stretch; flex-direction: column;">
+        <button id="btnExportar" class="btn">⬇️ Exportar datos (JSON)</button>
+        <button id="btnImportar" class="btn btn-ghost">⬆️ Importar copia</button>
+        <button id="btnCerrarBackup" class="btn btn-ghost">Cerrar</button>
+      </div>
+      <input type="file" id="inputImportar" class="input-file" accept="application/json,.json">
+    </div>
+  </div>
+
+  <div id="toastContainer" aria-live="polite"></div>
   <footer>© CEIP Capitulaciones · Victask</footer>
 
   <script>
-    // Utilidad para generar IDs únicos
-    function generarId() {
-      return Date.now().toString(36) + Math.random().toString(36).substr(2);
+    'use strict';
+    // ==================== UTILIDADES ====================
+    const $ = id => document.getElementById(id);
+    const generarId = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
+
+    const WHATSAPP_SVG = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>';
+
+    function compartirWhatsApp(texto) {
+      window.open('https://wa.me/?text=' + encodeURIComponent(texto), '_blank');
     }
 
-    // Cambio de secciones
-    const btnTareas = document.getElementById('btnTareas');
-    const btnFechas = document.getElementById('btnFechas');
-    const btnHorario = document.getElementById('btnHorario');
-    const btnCompra = document.getElementById('btnCompra');
-    const secTareas = document.getElementById('tareas');
-    const secFechas = document.getElementById('fechas');
-    const secHorario = document.getElementById('horario');
-    const secCompra = document.getElementById('compra');
-
-    function activarSeccion(seccionActiva, botonActivo) {
-      [secTareas, secFechas, secHorario, secCompra].forEach(s => s.classList.remove('active'));
-      [btnTareas, btnFechas, btnHorario, btnCompra].forEach(b => b.classList.remove('active'));
-      seccionActiva.classList.add('active');
-      botonActivo.classList.add('active');
+    // ---- Toasts (sustituyen a alert) ----
+    function mostrarToast(mensaje, tipo = '', accion = null) {
+      const toast = document.createElement('div');
+      toast.className = 'toast ' + tipo;
+      const span = document.createElement('span');
+      span.textContent = mensaje;
+      toast.appendChild(span);
+      let temporizador;
+      if (accion) {
+        const btn = document.createElement('button');
+        btn.textContent = accion.etiqueta;
+        btn.onclick = () => { clearTimeout(temporizador); toast.remove(); accion.fn(); };
+        toast.appendChild(btn);
+      }
+      $('toastContainer').appendChild(toast);
+      temporizador = setTimeout(() => toast.remove(), accion ? 5000 : 3000);
     }
 
-    btnTareas.onclick = () => activarSeccion(secTareas, btnTareas);
-    btnFechas.onclick = () => activarSeccion(secFechas, btnFechas);
-    btnHorario.onclick = () => activarSeccion(secHorario, btnHorario);
-    btnCompra.onclick = () => activarSeccion(secCompra, btnCompra);
+    // ---- Confirmación (sustituye a confirm) ----
+    let confirmResolver = null;
+    function pedirConfirmacion(texto) {
+      return new Promise(resolve => {
+        confirmResolver = resolve;
+        $('confirmTexto').textContent = texto;
+        $('modalConfirm').classList.add('active');
+        $('confirmAceptar').focus();
+      });
+    }
+    function cerrarConfirm(valor) {
+      $('modalConfirm').classList.remove('active');
+      if (confirmResolver) { confirmResolver(valor); confirmResolver = null; }
+    }
+    $('confirmAceptar').onclick = () => cerrarConfirm(true);
+    $('confirmCancelar').onclick = () => cerrarConfirm(false);
+    $('modalConfirm').onclick = e => { if (e.target === $('modalConfirm')) cerrarConfirm(false); };
 
-    // HORARIO
-    const inputHorario = document.getElementById('inputHorario');
-    const btnSubirHorario = document.getElementById('btnSubirHorario');
-    const btnCambiarHorario = document.getElementById('btnCambiarHorario');
-    const btnEliminarHorario = document.getElementById('btnEliminarHorario');
-    const imagenHorario = document.getElementById('imagenHorario');
-    const horarioVacio = document.getElementById('horarioVacio');
-    const horarioContenido = document.getElementById('horarioContenido');
+    // Escape cierra cualquier modal
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') {
+        if ($('modalConfirm').classList.contains('active')) cerrarConfirm(false);
+        $('modalZoom').classList.remove('active');
+        $('modalBackup').classList.remove('active');
+      }
+    });
 
-    // DIPA
-    const inputDipa = document.getElementById('inputDipa');
-    const btnSubirDipa = document.getElementById('btnSubirDipa');
-    const btnCambiarDipa = document.getElementById('btnCambiarDipa');
-    const btnEliminarDipa = document.getElementById('btnEliminarDipa');
-    const imagenDipa = document.getElementById('imagenDipa');
-    const dipaVacio = document.getElementById('dipaVacio');
-    const dipaContenido = document.getElementById('dipaContenido');
+    // ==================== NAVEGACIÓN ====================
+    const secciones = [
+      ['btnTareas', 'tareas'], ['btnFechas', 'fechas'],
+      ['btnHorario', 'horario'], ['btnCompra', 'compra']
+    ];
+    secciones.forEach(([btnId, secId]) => {
+      $(btnId).onclick = () => {
+        secciones.forEach(([b, s]) => {
+          $(b).classList.toggle('active', b === btnId);
+          $(s).classList.toggle('active', s === secId);
+        });
+      };
+    });
 
-    // Función para comprimir imágenes
+    function actualizarBadges() {
+      const tareas = obtenerTareas().filter(t => !t.hecha).length;
+      const fechas = obtenerFechas().length;
+      const compra = obtenerCompra().length;
+      $('badgeTareas').textContent = tareas;
+      $('badgeFechas').textContent = fechas;
+      $('badgeCompra').textContent = compra;
+    }
+
+    // ==================== TAREAS ====================
+    const listaTareas = $('listaTareas');
+    const listaHechas = $('listaHechas');
+    let draggedElement = null;
+
+    const guardarTareas = t => { localStorage.setItem('tareas', JSON.stringify(t)); actualizarBadges(); };
+    function obtenerTareas() {
+      const tareas = JSON.parse(localStorage.getItem('tareas') || '[]');
+      return tareas.map(t => { if (!t.id) t.id = generarId(); return t; });
+    }
+
+    function calcularDiasRestantes(fechaISO) {
+      const hoy = new Date(); hoy.setHours(0,0,0,0);
+      const dias = Math.ceil((new Date(fechaISO) - hoy) / 86400000);
+      if (dias === 0) return { dias, texto: '¡Vence hoy!', vencida: true };
+      if (dias === 1) return { dias, texto: 'Vence mañana', vencida: false };
+      if (dias < 0) return { dias, texto: `Venció hace ${Math.abs(dias)} día${Math.abs(dias) > 1 ? 's' : ''}`, vencida: true };
+      if (dias <= 3) return { dias, texto: `Vence en ${dias} días ⚠️`, vencida: false };
+      return { dias, texto: `Vence en ${dias} días`, vencida: false };
+    }
+
+    function crearIconBtn(clase, contenido, ariaLabel, onclick) {
+      const b = document.createElement('button');
+      b.className = 'icon-btn ' + clase;
+      if (contenido.startsWith('<svg')) b.innerHTML = contenido; else b.textContent = contenido;
+      b.setAttribute('aria-label', ariaLabel);
+      b.title = ariaLabel;
+      b.onclick = onclick;
+      return b;
+    }
+
+    function activarEdicion(li, textoActual, alGuardar) {
+      const divInfo = li.querySelector('.item-info');
+      const input = document.createElement('input');
+      input.type = 'text';
+      input.className = 'edit-input';
+      input.value = textoActual;
+      divInfo.style.display = 'none';
+      li.insertBefore(input, divInfo);
+      input.focus();
+      input.setSelectionRange(input.value.length, input.value.length);
+      const terminar = guardar => {
+        const valor = input.value.trim();
+        input.remove();
+        divInfo.style.display = '';
+        if (guardar && valor && valor !== textoActual) alGuardar(valor);
+      };
+      input.onkeydown = e => {
+        if (e.key === 'Enter') terminar(true);
+        if (e.key === 'Escape') terminar(false);
+      };
+      input.onblur = () => terminar(true);
+    }
+
+    function cargarTareas() {
+      const tareas = obtenerTareas();
+      listaTareas.innerHTML = '';
+      listaHechas.innerHTML = '';
+      const pendientes = tareas.filter(t => !t.hecha);
+      const hechas = tareas.filter(t => t.hecha);
+      pendientes.forEach(t => añadirTareaALista(t));
+      hechas.forEach(t => añadirTareaALista(t));
+      $('tareasVacio').style.display = pendientes.length ? 'none' : 'block';
+      $('tituloHechas').style.display = hechas.length ? 'block' : 'none';
+      actualizarBadges();
+    }
+
+    function actualizarTarea(id, fn) {
+      const tareas = obtenerTareas();
+      const i = tareas.findIndex(t => t.id === id);
+      if (i !== -1) { fn(tareas, i); guardarTareas(tareas); cargarTareas(); }
+    }
+
+    function añadirTareaALista(tarea) {
+      const li = document.createElement('li');
+      li.className = 'item';
+      li.dataset.id = tarea.id;
+      if (tarea.hecha) li.classList.add('hecha');
+      else {
+        li.draggable = true;
+        if (tarea.prioritaria) li.classList.add('prioritaria');
+        if (tarea.fechaVencimiento && calcularDiasRestantes(tarea.fechaVencimiento).vencida) li.classList.add('vencida');
+      }
+
+      if (!tarea.hecha) {
+        const dragHandle = document.createElement('span');
+        dragHandle.className = 'drag-handle';
+        dragHandle.textContent = '⋮⋮';
+        dragHandle.setAttribute('aria-hidden', 'true');
+        li.appendChild(dragHandle);
+      }
+
+      const divInfo = document.createElement('div');
+      divInfo.className = 'item-info';
+      const span = document.createElement('div');
+      span.className = 'item-texto';
+      span.textContent = (tarea.prioritaria && !tarea.hecha ? '⭐ ' : '') + tarea.texto;
+      divInfo.appendChild(span);
+      if (tarea.fechaVencimiento && !tarea.hecha) {
+        const spanFecha = document.createElement('div');
+        const info = calcularDiasRestantes(tarea.fechaVencimiento);
+        spanFecha.className = 'item-sub' + (info.vencida || info.dias <= 3 ? ' alerta' : '');
+        const fechaFormateada = new Date(tarea.fechaVencimiento).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
+        spanFecha.textContent = `📅 ${fechaFormateada} — ${info.texto}`;
+        divInfo.appendChild(spanFecha);
+      }
+      li.appendChild(divInfo);
+
+      const divBotones = document.createElement('div');
+      divBotones.className = 'item-botones';
+
+      if (!tarea.hecha) {
+        divBotones.appendChild(crearIconBtn(
+          'prioridad' + (tarea.prioritaria ? ' activa' : ''),
+          tarea.prioritaria ? '⭐' : '☆',
+          tarea.prioritaria ? 'Quitar prioridad' : 'Marcar prioritaria',
+          () => actualizarTarea(tarea.id, (ts, i) => ts[i].prioritaria = !ts[i].prioritaria)
+        ));
+        divBotones.appendChild(crearIconBtn('editar', '✏️', 'Editar tarea', () => {
+          activarEdicion(li, tarea.texto, nuevo => actualizarTarea(tarea.id, (ts, i) => ts[i].texto = nuevo));
+        }));
+        divBotones.appendChild(crearIconBtn('hecho', '✓', 'Marcar como hecha', () => {
+          actualizarTarea(tarea.id, (ts, i) => ts[i].hecha = true);
+          mostrarToast('Tarea completada', 'success', {
+            etiqueta: 'Deshacer',
+            fn: () => actualizarTarea(tarea.id, (ts, i) => ts[i].hecha = false)
+          });
+        }));
+      } else {
+        divBotones.appendChild(crearIconBtn('deshacer', '↩️', 'Recuperar tarea', () =>
+          actualizarTarea(tarea.id, (ts, i) => ts[i].hecha = false)
+        ));
+        divBotones.appendChild(crearIconBtn('borrar', '🗑️', 'Borrar definitivamente', () => {
+          const tareas = obtenerTareas().filter(t => t.id !== tarea.id);
+          guardarTareas(tareas); cargarTareas();
+        }));
+      }
+      li.appendChild(divBotones);
+
+      // Drag & drop escritorio
+      if (!tarea.hecha) {
+        li.addEventListener('dragstart', e => {
+          draggedElement = li;
+          li.classList.add('dragging');
+          e.dataTransfer.effectAllowed = 'move';
+        });
+        li.addEventListener('dragend', () => {
+          li.classList.remove('dragging');
+          listaTareas.querySelectorAll('li').forEach(item => item.classList.remove('drag-over'));
+        });
+        li.addEventListener('dragover', e => {
+          e.preventDefault();
+          if (draggedElement !== li) li.classList.add('drag-over');
+        });
+        li.addEventListener('dragleave', () => li.classList.remove('drag-over'));
+        li.addEventListener('drop', e => {
+          e.preventDefault();
+          li.classList.remove('drag-over');
+          if (draggedElement && draggedElement !== li) reordenarTareas(draggedElement.dataset.id, li.dataset.id);
+        });
+
+        // Reordenar táctil (móvil) arrastrando desde el handle
+        const handle = li.querySelector('.drag-handle');
+        handle.addEventListener('touchstart', () => {
+          li.classList.add('dragging');
+        }, { passive: true });
+        handle.addEventListener('touchmove', e => {
+          e.preventDefault();
+          const touch = e.touches[0];
+          const objetivo = document.elementFromPoint(touch.clientX, touch.clientY)?.closest('#listaTareas li');
+          listaTareas.querySelectorAll('li').forEach(item => item.classList.remove('drag-over'));
+          if (objetivo && objetivo !== li) objetivo.classList.add('drag-over');
+        }, { passive: false });
+        handle.addEventListener('touchend', e => {
+          li.classList.remove('dragging');
+          const objetivo = listaTareas.querySelector('li.drag-over');
+          listaTareas.querySelectorAll('li').forEach(item => item.classList.remove('drag-over'));
+          if (objetivo && objetivo !== li) reordenarTareas(li.dataset.id, objetivo.dataset.id);
+        });
+      }
+
+      (tarea.hecha ? listaHechas : listaTareas).appendChild(li);
+    }
+
+    function reordenarTareas(draggedId, targetId) {
+      const tareas = obtenerTareas();
+      const di = tareas.findIndex(t => t.id === draggedId);
+      const ti = tareas.findIndex(t => t.id === targetId);
+      if (di !== -1 && ti !== -1) {
+        const [item] = tareas.splice(di, 1);
+        tareas.splice(ti, 0, item);
+        guardarTareas(tareas);
+        cargarTareas();
+      }
+    }
+
+    $('agregarTarea').onclick = () => {
+      const texto = $('nuevaTarea').value.trim();
+      if (!texto) return;
+      const tareas = obtenerTareas();
+      tareas.push({
+        id: generarId(),
+        texto,
+        prioritaria: $('checkPrioridadTarea').checked,
+        fechaVencimiento: $('fechaVencimientoTarea').value || null,
+        hecha: false
+      });
+      guardarTareas(tareas);
+      $('nuevaTarea').value = '';
+      $('checkPrioridadTarea').checked = false;
+      $('fechaVencimientoTarea').value = '';
+      cargarTareas();
+    };
+    $('nuevaTarea').addEventListener('keypress', e => { if (e.key === 'Enter') $('agregarTarea').click(); });
+
+    // ==================== FECHAS ====================
+    const listaFechas = $('listaFechas');
+    const soportaNotificaciones = 'Notification' in window;
+
+    const guardarFechas = f => { localStorage.setItem('fechas', JSON.stringify(f)); actualizarBadges(); };
+    function obtenerFechas() {
+      const fechas = JSON.parse(localStorage.getItem('fechas') || '[]');
+      return fechas.map(f => { if (!f.id) f.id = generarId(); return f; });
+    }
+
+    function eliminarFechasPasadas() {
+      const fechas = obtenerFechas();
+      const hoy = new Date(); hoy.setHours(0,0,0,0);
+      const filtradas = fechas.filter(f => new Date(f.fechaISO) >= hoy);
+      if (filtradas.length !== fechas.length) guardarFechas(filtradas);
+    }
+
+    function formatearFecha(fechaISO) {
+      return new Date(fechaISO).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function calcularDiasRestantesFecha(fechaISO) {
+      const hoy = new Date(); hoy.setHours(0,0,0,0);
+      const dias = Math.ceil((new Date(fechaISO) - hoy) / 86400000);
+      if (dias === 0) return { dias, texto: '¡Hoy!' };
+      if (dias === 1) return { dias, texto: 'Mañana' };
+      if (dias < 0) return { dias, texto: 'Fecha pasada' };
+      return { dias, texto: `Faltan ${dias} días` };
+    }
+
+    function ordenarYMostrarFechas() {
+      const fechas = obtenerFechas();
+      listaFechas.innerHTML = '';
+      fechas.sort((a, b) => {
+        if (a.prioritaria && !b.prioritaria) return -1;
+        if (!a.prioritaria && b.prioritaria) return 1;
+        return new Date(a.fechaISO) - new Date(b.fechaISO);
+      });
+      fechas.forEach(f => mostrarFecha(f));
+      $('fechasVacio').style.display = fechas.length ? 'none' : 'block';
+      actualizarBadges();
+    }
+
+    function mostrarFecha(fechaObj) {
+      const li = document.createElement('li');
+      li.className = 'item';
+      const infoRestante = calcularDiasRestantesFecha(fechaObj.fechaISO);
+      if (fechaObj.prioritaria) li.classList.add('prioritaria');
+      if (infoRestante.dias < 0) li.classList.add('pasada');
+
+      const divInfo = document.createElement('div');
+      divInfo.className = 'item-info';
+      const spanTexto = document.createElement('div');
+      spanTexto.className = 'item-texto';
+      spanTexto.style.fontWeight = '600';
+      const prioridadIcon = fechaObj.prioritaria ? '⭐ ' : '';
+      spanTexto.textContent = `${prioridadIcon}${formatearFecha(fechaObj.fechaISO)} ${fechaObj.hora || ''} — ${fechaObj.descripcion}`;
+      const spanDias = document.createElement('div');
+      spanDias.className = 'item-sub' + (infoRestante.dias >= 0 && infoRestante.dias <= 2 ? ' alerta' : '');
+      spanDias.textContent = infoRestante.texto;
+      divInfo.appendChild(spanTexto);
+      divInfo.appendChild(spanDias);
+      li.appendChild(divInfo);
+
+      const divBotones = document.createElement('div');
+      divBotones.className = 'item-botones';
+
+      divBotones.appendChild(crearIconBtn(
+        'prioridad' + (fechaObj.prioritaria ? ' activa' : ''),
+        fechaObj.prioritaria ? '⭐' : '☆',
+        fechaObj.prioritaria ? 'Quitar prioridad' : 'Marcar prioritaria',
+        () => {
+          const fechas = obtenerFechas();
+          const i = fechas.findIndex(f => f.id === fechaObj.id);
+          if (i !== -1) {
+            fechas[i].prioritaria = !fechas[i].prioritaria;
+            guardarFechas(fechas);
+            ordenarYMostrarFechas();
+            programarNotificacion(fechas[i]);
+          }
+        }
+      ));
+
+      divBotones.appendChild(crearIconBtn('editar', '✏️', 'Editar descripción', () => {
+        activarEdicion(li, fechaObj.descripcion, nuevo => {
+          const fechas = obtenerFechas();
+          const i = fechas.findIndex(f => f.id === fechaObj.id);
+          if (i !== -1) { fechas[i].descripcion = nuevo; guardarFechas(fechas); ordenarYMostrarFechas(); }
+        });
+      }));
+
+      divBotones.appendChild(crearIconBtn('whatsapp', WHATSAPP_SVG, 'Compartir por WhatsApp', () => {
+        compartirWhatsApp(`📅 Fecha importante:\n${prioridadIcon}${formatearFecha(fechaObj.fechaISO)} ${fechaObj.hora || ''} — ${fechaObj.descripcion}`);
+      }));
+
+      divBotones.appendChild(crearIconBtn('borrar', '🗑️', 'Borrar fecha', async () => {
+        if (await pedirConfirmacion(`¿Borrar "${fechaObj.descripcion}"?`)) {
+          guardarFechas(obtenerFechas().filter(f => f.id !== fechaObj.id));
+          ordenarYMostrarFechas();
+        }
+      }));
+
+      li.appendChild(divBotones);
+      listaFechas.appendChild(li);
+    }
+
+    // Notificaciones — con guardas para navegadores sin soporte (iOS Safari)
+    function programarNotificacion(fechaObj) {
+      if (!soportaNotificaciones || Notification.permission !== 'granted') return;
+      const hoy = new Date();
+      const fechaEvento = new Date(fechaObj.fechaISO + 'T' + (fechaObj.hora || '09:00'));
+      if (fechaEvento > hoy) {
+        const restante = fechaEvento - hoy;
+        if (restante > 0 && restante < 86400000) {
+          setTimeout(() => {
+            new Notification((fechaObj.prioritaria ? '⭐ PRIORITARIO - ' : '') + 'Fecha importante', {
+              body: fechaObj.descripcion,
+              icon: 'icon-192.png',
+              requireInteraction: fechaObj.prioritaria
+            });
+          }, restante);
+        }
+      }
+      const unDiaAntes = new Date(fechaObj.fechaISO + 'T09:00:00');
+      unDiaAntes.setDate(unDiaAntes.getDate() - 1);
+      if (unDiaAntes > hoy) {
+        const antes = unDiaAntes - hoy;
+        if (antes > 0 && antes < 86400000) {
+          setTimeout(() => {
+            new Notification((fechaObj.prioritaria ? '⭐ ' : '') + 'Recordatorio: Mañana', {
+              body: fechaObj.descripcion,
+              icon: 'icon-192.png'
+            });
+          }, antes);
+        }
+      }
+    }
+    const programarTodasLasNotificaciones = () => obtenerFechas().forEach(f => programarNotificacion(f));
+
+    function marcarNotificacionesActivas() {
+      const btn = $('btnNotificaciones');
+      btn.classList.remove('btn-warning');
+      btn.classList.add('btn-success');
+      btn.textContent = '🔔 Notificaciones Activadas';
+    }
+
+    $('btnNotificaciones').onclick = () => {
+      if (!soportaNotificaciones) {
+        mostrarToast('Este navegador no admite notificaciones (usa el aviso "1 día antes" mirando la app)', 'error');
+        return;
+      }
+      if (Notification.permission === 'granted') {
+        marcarNotificacionesActivas();
+        mostrarToast('Las notificaciones ya están activadas', 'success');
+        programarTodasLasNotificaciones();
+      } else if (Notification.permission !== 'denied') {
+        Notification.requestPermission().then(permission => {
+          if (permission === 'granted') {
+            marcarNotificacionesActivas();
+            mostrarToast('Notificaciones activadas correctamente', 'success');
+            programarTodasLasNotificaciones();
+          } else {
+            mostrarToast('Notificaciones denegadas', 'error');
+          }
+        });
+      } else {
+        mostrarToast('Las notificaciones están bloqueadas. Actívalas desde la configuración del navegador.', 'error');
+      }
+    };
+    if (soportaNotificaciones && Notification.permission === 'granted') marcarNotificacionesActivas();
+
+    $('agregarFecha').onclick = () => {
+      if ($('nuevaFecha').value && $('descripcionFecha').value.trim()) {
+        const fechas = obtenerFechas();
+        const nueva = {
+          id: generarId(),
+          fechaISO: $('nuevaFecha').value,
+          hora: $('horaFecha').value,
+          descripcion: $('descripcionFecha').value.trim(),
+          prioritaria: $('checkPrioridad').checked
+        };
+        fechas.push(nueva);
+        guardarFechas(fechas);
+        $('nuevaFecha').value = ''; $('horaFecha').value = '';
+        $('descripcionFecha').value = ''; $('checkPrioridad').checked = false;
+        ordenarYMostrarFechas();
+        programarNotificacion(nueva);
+      } else {
+        mostrarToast('Indica al menos la fecha y una descripción', 'error');
+      }
+    };
+    $('nuevaFecha').addEventListener('keypress', e => { if (e.key === 'Enter') $('horaFecha').focus(); });
+    $('horaFecha').addEventListener('keypress', e => { if (e.key === 'Enter') $('descripcionFecha').focus(); });
+    $('descripcionFecha').addEventListener('keypress', e => { if (e.key === 'Enter') $('agregarFecha').click(); });
+
+    // ==================== HORARIO / DIPA ====================
     function comprimirImagen(file, callback) {
       const reader = new FileReader();
-      reader.onload = (e) => {
+      reader.onload = e => {
         const img = new Image();
         img.onload = () => {
           const canvas = document.createElement('canvas');
-          let width = img.width;
-          let height = img.height;
-          
-          // Reducir tamaño si es muy grande
+          let { width, height } = img;
           const maxDimension = 1200;
           if (width > maxDimension || height > maxDimension) {
-            if (width > height) {
-              height = (height / width) * maxDimension;
-              width = maxDimension;
-            } else {
-              width = (width / height) * maxDimension;
-              height = maxDimension;
-            }
+            if (width > height) { height = (height / width) * maxDimension; width = maxDimension; }
+            else { width = (width / height) * maxDimension; height = maxDimension; }
           }
-          
-          canvas.width = width;
-          canvas.height = height;
-          const ctx = canvas.getContext('2d');
-          ctx.drawImage(img, 0, 0, width, height);
-          
-          // Comprimir a calidad 0.7 (70%)
-          const imagenComprimida = canvas.toDataURL('image/jpeg', 0.7);
-          callback(imagenComprimida);
+          canvas.width = width; canvas.height = height;
+          canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+          callback(canvas.toDataURL('image/jpeg', 0.7));
         };
         img.src = e.target.result;
       };
       reader.readAsDataURL(file);
     }
 
-    // Modal
-    const modalZoom = document.getElementById('modalZoom');
-    const imagenZoom = document.getElementById('imagenZoom');
-    const cerrarModal = document.getElementById('cerrarModal');
-
-    function cargarHorario() {
-      const horarioGuardado = localStorage.getItem('horarioImagen');
-      if (horarioGuardado) {
-        imagenHorario.src = horarioGuardado;
-        horarioVacio.style.display = 'none';
-        horarioContenido.style.display = 'block';
-        btnSubirHorario.style.display = 'none';
-      } else {
-        horarioVacio.style.display = 'block';
-        horarioContenido.style.display = 'none';
-        btnSubirHorario.style.display = 'inline-block';
+    function configurarDocumento(clave, ids) {
+      const { input, subir, cambiar, eliminar, imagen, vacio, contenido, nombre } = ids;
+      function cargar() {
+        const guardado = localStorage.getItem(clave);
+        if (guardado) {
+          $(imagen).src = guardado;
+          $(vacio).style.display = 'none';
+          $(contenido).style.display = 'block';
+          $(subir).style.display = 'none';
+        } else {
+          $(vacio).style.display = 'block';
+          $(contenido).style.display = 'none';
+          $(subir).style.display = 'inline-flex';
+        }
       }
-    }
-
-    function cargarDipa() {
-      const dipaGuardado = localStorage.getItem('dipaImagen');
-      if (dipaGuardado) {
-        imagenDipa.src = dipaGuardado;
-        dipaVacio.style.display = 'none';
-        dipaContenido.style.display = 'block';
-        btnSubirDipa.style.display = 'none';
-      } else {
-        dipaVacio.style.display = 'block';
-        dipaContenido.style.display = 'none';
-        btnSubirDipa.style.display = 'inline-block';
-      }
-    }
-
-    btnSubirHorario.onclick = () => inputHorario.click();
-    btnCambiarHorario.onclick = () => inputHorario.click();
-
-    btnSubirDipa.onclick = () => inputDipa.click();
-    btnCambiarDipa.onclick = () => inputDipa.click();
-
-    inputHorario.onchange = (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        comprimirImagen(file, (imagenComprimida) => {
+      $(subir).onclick = () => $(input).click();
+      $(cambiar).onclick = () => $(input).click();
+      $(input).onchange = e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        comprimirImagen(file, comprimida => {
           try {
-            localStorage.setItem('horarioImagen', imagenComprimida);
-            cargarHorario();
-            console.log('✅ Horario guardado correctamente');
-          } catch (error) {
-            console.error('Error al guardar horario:', error);
-            alert('❌ Error: La imagen es demasiado grande. Intenta con una foto de menor resolución.');
+            localStorage.setItem(clave, comprimida);
+            cargar();
+            mostrarToast(`✓ ${nombre} guardado correctamente`, 'success');
+          } catch {
+            mostrarToast('La imagen es demasiado grande. Prueba con menor resolución.', 'error');
           }
         });
-      }
-    };
-
-    inputDipa.onchange = (e) => {
-      const file = e.target.files[0];
-      if (file) {
-        comprimirImagen(file, (imagenComprimida) => {
-          try {
-            localStorage.setItem('dipaImagen', imagenComprimida);
-            cargarDipa();
-            console.log('✅ Tarjeta DIPA guardada correctamente');
-          } catch (error) {
-            console.error('Error al guardar DIPA:', error);
-            alert('❌ Error: La imagen es demasiado grande. Intenta con una foto de menor resolución.');
-          }
-        });
-      }
-    };
-
-    btnEliminarHorario.onclick = () => {
-      if (confirm('¿Seguro que quieres eliminar el horario?')) {
-        localStorage.removeItem('horarioImagen');
-        cargarHorario();
-      }
-    };
-
-    btnEliminarDipa.onclick = () => {
-      if (confirm('¿Seguro que quieres eliminar la tarjeta DIPA?')) {
-        localStorage.removeItem('dipaImagen');
-        cargarDipa();
-      }
-    };
-
-    // Zoom de imagen
-    let scale = 1;
-    let panning = false;
-    let pointX = 0;
-    let pointY = 0;
-    let start = { x: 0, y: 0 };
-
-    function resetZoom() {
-      scale = 1;
-      imagenZoom.style.transform = `translate(0px, 0px) scale(1)`;
-      imagenZoom.style.transformOrigin = 'center center';
-    }
-
-    imagenHorario.onclick = () => {
-      modalZoom.classList.add('active');
-      imagenZoom.src = imagenHorario.src;
-      resetZoom();
-    };
-
-    imagenDipa.onclick = () => {
-      modalZoom.classList.add('active');
-      imagenZoom.src = imagenDipa.src;
-      resetZoom();
-    };
-
-    cerrarModal.onclick = () => {
-      modalZoom.classList.remove('active');
-      resetZoom();
-    };
-
-    modalZoom.onclick = (e) => {
-      if (e.target === modalZoom) {
-        modalZoom.classList.remove('active');
+      };
+      $(eliminar).onclick = async () => {
+        if (await pedirConfirmacion(`¿Seguro que quieres eliminar ${nombre.toLowerCase()}?`)) {
+          localStorage.removeItem(clave);
+          cargar();
+        }
+      };
+      $(imagen).onclick = () => {
+        $('modalZoom').classList.add('active');
+        $('imagenZoom').src = $(imagen).src;
         resetZoom();
-      }
-    };
+      };
+      cargar();
+      return cargar;
+    }
 
-    // Soporte para zoom con rueda del ratón (escritorio)
-    imagenZoom.onwheel = (e) => {
+    const cargarHorario = configurarDocumento('horarioImagen', {
+      input: 'inputHorario', subir: 'btnSubirHorario', cambiar: 'btnCambiarHorario',
+      eliminar: 'btnEliminarHorario', imagen: 'imagenHorario',
+      vacio: 'horarioVacio', contenido: 'horarioContenido', nombre: 'El horario'
+    });
+    const cargarDipa = configurarDocumento('dipaImagen', {
+      input: 'inputDipa', subir: 'btnSubirDipa', cambiar: 'btnCambiarDipa',
+      eliminar: 'btnEliminarDipa', imagen: 'imagenDipa',
+      vacio: 'dipaVacio', contenido: 'dipaContenido', nombre: 'La tarjeta DIPA'
+    });
+
+    // ---- Zoom (rueda, pinch, doble toque, pan) ----
+    const modalZoom = $('modalZoom');
+    const imagenZoom = $('imagenZoom');
+    let scale = 1, panning = false, pointX = 0, pointY = 0, start = { x: 0, y: 0 };
+
+    function aplicarTransform() {
+      imagenZoom.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+    }
+    function resetZoom() {
+      scale = 1; pointX = 0; pointY = 0;
+      imagenZoom.style.transformOrigin = 'center center';
+      aplicarTransform();
+    }
+    $('cerrarModal').onclick = () => { modalZoom.classList.remove('active'); resetZoom(); };
+    modalZoom.onclick = e => { if (e.target === modalZoom) { modalZoom.classList.remove('active'); resetZoom(); } };
+
+    imagenZoom.onwheel = e => {
       e.preventDefault();
       const xs = (e.clientX - pointX) / scale;
       const ys = (e.clientY - pointY) / scale;
-      const delta = e.wheelDelta ? e.wheelDelta : -e.deltaY;
-      
-      if (delta > 0) {
-        scale *= 1.2;
-      } else {
-        scale /= 1.2;
-      }
-      
-      scale = Math.max(1, Math.min(5, scale)); // Limitar entre 1x y 5x
-      
+      scale = Math.max(1, Math.min(5, e.deltaY < 0 ? scale * 1.2 : scale / 1.2));
       pointX = e.clientX - xs * scale;
       pointY = e.clientY - ys * scale;
-      
-      imagenZoom.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
       imagenZoom.style.transformOrigin = '0 0';
+      aplicarTransform();
     };
 
-    // Soporte para pinch-to-zoom en móvil
-    let initialDistance = 0;
-    let currentScale = 1;
-
-    imagenZoom.addEventListener('touchstart', (e) => {
+    let initialDistance = 0, currentScale = 1, lastTap = 0;
+    imagenZoom.addEventListener('touchstart', e => {
       if (e.touches.length === 2) {
         e.preventDefault();
-        initialDistance = Math.hypot(
-          e.touches[0].pageX - e.touches[1].pageX,
-          e.touches[0].pageY - e.touches[1].pageY
-        );
+        initialDistance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
         currentScale = scale;
       } else if (e.touches.length === 1 && scale > 1) {
         panning = true;
         start = { x: e.touches[0].clientX - pointX, y: e.touches[0].clientY - pointY };
       }
     });
-
-    imagenZoom.addEventListener('touchmove', (e) => {
+    imagenZoom.addEventListener('touchmove', e => {
       if (e.touches.length === 2) {
         e.preventDefault();
-        const distance = Math.hypot(
-          e.touches[0].pageX - e.touches[1].pageX,
-          e.touches[0].pageY - e.touches[1].pageY
-        );
-        
-        scale = currentScale * (distance / initialDistance);
-        scale = Math.max(1, Math.min(5, scale)); // Limitar entre 1x y 5x
-        
-        imagenZoom.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+        const distance = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
+        scale = Math.max(1, Math.min(5, currentScale * (distance / initialDistance)));
         imagenZoom.style.transformOrigin = '0 0';
+        aplicarTransform();
       } else if (e.touches.length === 1 && panning && scale > 1) {
         e.preventDefault();
         pointX = e.touches[0].clientX - start.x;
         pointY = e.touches[0].clientY - start.y;
-        imagenZoom.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
+        aplicarTransform();
       }
     });
-
-    imagenZoom.addEventListener('touchend', (e) => {
+    imagenZoom.addEventListener('touchend', e => {
       if (e.touches.length === 0) {
         panning = false;
-        // Si el zoom vuelve a 1, reiniciar posición
-        if (scale === 1) {
-          pointX = 0;
-          pointY = 0;
-          imagenZoom.style.transform = `translate(0px, 0px) scale(1)`;
+        if (scale === 1) { pointX = 0; pointY = 0; aplicarTransform(); }
+        const ahora = Date.now();
+        if (ahora - lastTap < 300) {
+          if (scale === 1) {
+            scale = 2.5;
+            const rect = imagenZoom.getBoundingClientRect();
+            pointX = rect.width / 4; pointY = rect.height / 4;
+          } else { scale = 1; pointX = 0; pointY = 0; }
+          aplicarTransform();
         }
+        lastTap = ahora;
       }
     });
 
-    // Doble toque para hacer zoom
-    let lastTap = 0;
-    imagenZoom.addEventListener('touchend', (e) => {
-      const currentTime = new Date().getTime();
-      const tapLength = currentTime - lastTap;
-      if (tapLength < 300 && tapLength > 0) {
-        // Doble toque detectado
-        if (scale === 1) {
-          scale = 2.5;
-          const rect = imagenZoom.getBoundingClientRect();
-          pointX = rect.width / 4;
-          pointY = rect.height / 4;
-        } else {
-          scale = 1;
-          pointX = 0;
-          pointY = 0;
-        }
-        imagenZoom.style.transform = `translate(${pointX}px, ${pointY}px) scale(${scale})`;
-      }
-      lastTap = currentTime;
-    });
-
-    cargarHorario();
-    cargarDipa();
-
-    // Tareas con drag & drop
-    const listaTareas = document.getElementById('listaTareas');
-    const nuevaTarea = document.getElementById('nuevaTarea');
-    const agregarTarea = document.getElementById('agregarTarea');
-    const checkPrioridadTarea = document.getElementById('checkPrioridadTarea');
-    const fechaVencimientoTarea = document.getElementById('fechaVencimientoTarea');
-
-    let draggedElement = null;
-
-    function guardarTareas(tareas) {
-      localStorage.setItem('tareas', JSON.stringify(tareas));
-    }
-
-    function obtenerTareas() {
-      const tareas = JSON.parse(localStorage.getItem('tareas') || '[]');
-      // Migrar tareas antiguas sin ID
-      return tareas.map(t => {
-        if (!t.id) t.id = generarId();
-        return t;
-      });
-    }
-
-    function calcularDiasRestantes(fechaISO) {
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
-      const fechaObjetivo = new Date(fechaISO);
-      const diferencia = fechaObjetivo - hoy;
-      const dias = Math.ceil(diferencia / (1000 * 60 * 60 * 24));
-      
-      if (dias === 0) return { dias: 0, texto: '¡Vence hoy!', vencida: true };
-      if (dias === 1) return { dias: 1, texto: 'Vence mañana', vencida: false };
-      if (dias < 0) return { dias: dias, texto: `Venció hace ${Math.abs(dias)} día${Math.abs(dias) > 1 ? 's' : ''}`, vencida: true };
-      if (dias <= 3) return { dias: dias, texto: `Vence en ${dias} días ⚠️`, vencida: false };
-      return { dias: dias, texto: `Vence en ${dias} días`, vencida: false };
-    }
-
-    function cargarTareas() {
-      const tareas = obtenerTareas();
-      listaTareas.innerHTML = '';
-      
-      tareas.forEach((tarea) => añadirTareaALista(tarea));
-    }
-
-    function añadirTareaALista(tarea) {
-      const li = document.createElement('li');
-      li.draggable = true;
-      li.dataset.id = tarea.id;
-      
-      if (tarea.prioritaria) {
-        li.classList.add('prioritaria');
-      }
-      
-      // Verificar si está vencida
-      if (tarea.fechaVencimiento) {
-        const info = calcularDiasRestantes(tarea.fechaVencimiento);
-        if (info.vencida) {
-          li.classList.add('vencida');
-        }
-      }
-      
-      // Drag handle
-      const dragHandle = document.createElement('span');
-      dragHandle.className = 'drag-handle';
-      dragHandle.innerHTML = '⋮⋮';
-      li.appendChild(dragHandle);
-      
-      const divInfo = document.createElement('div');
-      divInfo.className = 'tarea-info';
-      
-      const span = document.createElement('div');
-      span.className = 'tarea-texto';
-      const prioridadIcon = tarea.prioritaria ? '⭐ ' : '';
-      span.textContent = `${prioridadIcon}${tarea.texto}`;
-      divInfo.appendChild(span);
-      
-      // Mostrar fecha de vencimiento si existe
-      if (tarea.fechaVencimiento) {
-        const spanFecha = document.createElement('div');
-        spanFecha.className = 'tarea-fecha-vencimiento';
-        const info = calcularDiasRestantes(tarea.fechaVencimiento);
-        const fechaFormateada = new Date(tarea.fechaVencimiento).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
-        spanFecha.textContent = `📅 ${fechaFormateada} — ${info.texto}`;
-        divInfo.appendChild(spanFecha);
-      }
-      
-      li.appendChild(divInfo);
-      
-      const divBotones = document.createElement('div');
-      divBotones.className = 'botones-tarea';
-      
-      // Botón prioridad
-      const btnPrioridad = document.createElement('button');
-      btnPrioridad.className = 'prioridad';
-      if (tarea.prioritaria) {
-        btnPrioridad.classList.add('activa');
-        btnPrioridad.textContent = '⭐';
-      } else {
-        btnPrioridad.textContent = '☆';
-      }
-      btnPrioridad.onclick = () => {
-        const tareas = obtenerTareas();
-        const tareaIndex = tareas.findIndex(t => t.id === tarea.id);
-        if (tareaIndex !== -1) {
-          tareas[tareaIndex].prioritaria = !tareas[tareaIndex].prioritaria;
-          guardarTareas(tareas);
-          cargarTareas();
-        }
-      };
-      divBotones.appendChild(btnPrioridad);
-      
-      // Botón Hecho
-      const btnHecho = document.createElement('button');
-      btnHecho.textContent = 'Hecho';
-      btnHecho.onclick = () => {
-        const tareas = obtenerTareas();
-        const tareasFiltradas = tareas.filter(t => t.id !== tarea.id);
-        guardarTareas(tareasFiltradas);
-        cargarTareas();
-      };
-      divBotones.appendChild(btnHecho);
-      
-      li.appendChild(divBotones);
-      
-      // Eventos de drag & drop
-      li.addEventListener('dragstart', (e) => {
-        draggedElement = li;
-        li.classList.add('dragging');
-        e.dataTransfer.effectAllowed = 'move';
-      });
-      
-      li.addEventListener('dragend', (e) => {
-        li.classList.remove('dragging');
-        document.querySelectorAll('#listaTareas li').forEach(item => {
-          item.classList.remove('drag-over');
-        });
-      });
-      
-      li.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        if (draggedElement !== li) {
-          li.classList.add('drag-over');
-        }
-      });
-      
-      li.addEventListener('dragleave', (e) => {
-        li.classList.remove('drag-over');
-      });
-      
-      li.addEventListener('drop', (e) => {
-        e.preventDefault();
-        li.classList.remove('drag-over');
-        
-        if (draggedElement !== li) {
-          const tareas = obtenerTareas();
-          const draggedId = draggedElement.dataset.id;
-          const targetId = li.dataset.id;
-          
-          const draggedIndex = tareas.findIndex(t => t.id === draggedId);
-          const targetIndex = tareas.findIndex(t => t.id === targetId);
-          
-          if (draggedIndex !== -1 && targetIndex !== -1) {
-            const [draggedItem] = tareas.splice(draggedIndex, 1);
-            tareas.splice(targetIndex, 0, draggedItem);
-            guardarTareas(tareas);
-            cargarTareas();
-          }
-        }
-      });
-      
-      listaTareas.appendChild(li);
-    }
-
-    agregarTarea.onclick = () => {
-      if (nuevaTarea.value.trim()) {
-        const tareas = obtenerTareas();
-        const nuevaTareaObj = {
-          id: generarId(),
-          texto: nuevaTarea.value.trim(),
-          prioritaria: checkPrioridadTarea.checked,
-          fechaVencimiento: fechaVencimientoTarea.value || null
-        };
-        tareas.push(nuevaTareaObj);
-        guardarTareas(tareas);
-        nuevaTarea.value = '';
-        checkPrioridadTarea.checked = false;
-        fechaVencimientoTarea.value = '';
-        cargarTareas();
-      }
-    };
-
-    nuevaTarea.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') agregarTarea.click();
-    });
-
-    cargarTareas();
-
-    // Fechas con IDs únicos
-    const listaFechas = document.getElementById('listaFechas');
-    const nuevaFecha = document.getElementById('nuevaFecha');
-    const horaFecha = document.getElementById('horaFecha');
-    const descripcionFecha = document.getElementById('descripcionFecha');
-    const agregarFecha = document.getElementById('agregarFecha');
-    const checkPrioridad = document.getElementById('checkPrioridad');
-    const btnNotificaciones = document.getElementById('btnNotificaciones');
-
-    nuevaFecha.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        horaFecha.focus();
-      }
-    });
-
-    horaFecha.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') {
-        descripcionFecha.focus();
-      }
-    });
-
-    descripcionFecha.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') agregarFecha.click();
-    });
-
-    btnNotificaciones.onclick = () => {
-      if (Notification.permission === "granted") {
-        alert("Las notificaciones ya están activadas");
-        btnNotificaciones.classList.add('activo');
-        btnNotificaciones.textContent = '🔔 Notificaciones Activadas';
-        programarTodasLasNotificaciones();
-      } else if (Notification.permission !== "denied") {
-        Notification.requestPermission().then(permission => {
-          if (permission === "granted") {
-            alert("Notificaciones activadas correctamente");
-            btnNotificaciones.classList.add('activo');
-            btnNotificaciones.textContent = '🔔 Notificaciones Activadas';
-            programarTodasLasNotificaciones();
-          } else {
-            alert("Notificaciones denegadas");
-          }
-        });
-      } else {
-        alert("Las notificaciones están bloqueadas. Actívalas desde la configuración del navegador.");
-      }
-    };
-
-    if (Notification.permission === "granted") {
-      btnNotificaciones.classList.add('activo');
-      btnNotificaciones.textContent = '🔔 Notificaciones Activadas';
-    }
-
-    function obtenerFechas() {
-      const fechas = JSON.parse(localStorage.getItem('fechas') || '[]');
-      // Migrar fechas antiguas sin ID
-      return fechas.map(f => {
-        if (!f.id) f.id = generarId();
-        return f;
-      });
-    }
-
-    function guardarFechas(fechas) {
-      localStorage.setItem('fechas', JSON.stringify(fechas));
-    }
-
-    function eliminarFechasPasadas() {
-      const fechas = obtenerFechas();
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
-      
-      const fechasFiltradas = fechas.filter(f => {
-        const fechaEvento = new Date(f.fechaISO);
-        return fechaEvento >= hoy;
-      });
-      
-      if (fechasFiltradas.length !== fechas.length) {
-        guardarFechas(fechasFiltradas);
-      }
-    }
-
-    function formatearFecha(fechaISO) {
-      const fecha = new Date(fechaISO);
-      const opciones = { day: 'numeric', month: 'short', year: 'numeric' };
-      return fecha.toLocaleDateString('es-ES', opciones);
-    }
-
-    function calcularDiasRestantesFecha(fechaISO) {
-      const hoy = new Date();
-      hoy.setHours(0, 0, 0, 0);
-      const fechaObjetivo = new Date(fechaISO);
-      const diferencia = fechaObjetivo - hoy;
-      const dias = Math.ceil(diferencia / (1000 * 60 * 60 * 24));
-      
-      if (dias === 0) return { dias: 0, texto: '¡Hoy!' };
-      if (dias === 1) return { dias: 1, texto: 'Mañana' };
-      if (dias < 0) return { dias: dias, texto: 'Fecha pasada' };
-      return { dias: dias, texto: `Faltan ${dias} días` };
-    }
-
-    function ordenarYMostrarFechas() {
-      const fechas = obtenerFechas();
-      listaFechas.innerHTML = '';
-      
-      // Ordenar por prioridad y luego por fecha
-      fechas.sort((a, b) => {
-        if (a.prioritaria && !b.prioritaria) return -1;
-        if (!a.prioritaria && b.prioritaria) return 1;
-        return new Date(a.fechaISO) - new Date(b.fechaISO);
-      });
-      
-      fechas.forEach((fecha) => mostrarFecha(fecha));
-    }
-
-    function mostrarFecha(fechaObj) {
-      const li = document.createElement('li');
-      const infoRestante = calcularDiasRestantesFecha(fechaObj.fechaISO);
-      
-      if (fechaObj.prioritaria) {
-        li.classList.add('prioritaria');
-      }
-      
-      if (infoRestante.dias < 0) {
-        li.classList.add('pasada');
-      }
-      
-      const divInfo = document.createElement('div');
-      divInfo.className = 'fecha-info';
-      
-      const spanTexto = document.createElement('div');
-      spanTexto.className = 'fecha-texto';
-      const prioridadIcon = fechaObj.prioritaria ? '⭐ ' : '';
-      spanTexto.textContent = `${prioridadIcon}${formatearFecha(fechaObj.fechaISO)} ${fechaObj.hora || ''} — ${fechaObj.descripcion}`;
-      
-      const spanDias = document.createElement('div');
-      spanDias.className = 'fecha-dias';
-      spanDias.textContent = infoRestante.texto;
-      
-      divInfo.appendChild(spanTexto);
-      divInfo.appendChild(spanDias);
-      li.appendChild(divInfo);
-      
-      const divBotones = document.createElement('div');
-      divBotones.className = 'botones-fecha';
-      
-      // Botón prioridad
-      const btnPrioridad = document.createElement('button');
-      btnPrioridad.className = 'prioridad';
-      if (fechaObj.prioritaria) {
-        btnPrioridad.classList.add('activa');
-        btnPrioridad.textContent = '⭐';
-      } else {
-        btnPrioridad.textContent = '☆';
-      }
-      btnPrioridad.onclick = () => {
-        const fechas = obtenerFechas();
-        const fechaIndex = fechas.findIndex(f => f.id === fechaObj.id);
-        if (fechaIndex !== -1) {
-          fechas[fechaIndex].prioritaria = !fechas[fechaIndex].prioritaria;
-          guardarFechas(fechas);
-          ordenarYMostrarFechas();
-          programarNotificacion(fechas[fechaIndex]);
-        }
-      };
-      divBotones.appendChild(btnPrioridad);
-      
-      // Botón WhatsApp
-      const btnWhatsApp = document.createElement('button');
-      btnWhatsApp.className = 'whatsapp';
-      btnWhatsApp.innerHTML = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>';
-      btnWhatsApp.onclick = () => {
-        const texto = `${prioridadIcon}${formatearFecha(fechaObj.fechaISO)} ${fechaObj.hora || ''} — ${fechaObj.descripcion}`;
-        const mensaje = encodeURIComponent(`📅 Fecha importante:\n${texto}`);
-        window.open(`https://wa.me/?text=${mensaje}`, '_blank');
-      };
-      divBotones.appendChild(btnWhatsApp);
-      
-      // Botón Borrar
-      const btn = document.createElement('button');
-      btn.textContent = 'Borrar';
-      btn.onclick = () => {
-        const fechas = obtenerFechas();
-        const fechasFiltradas = fechas.filter(f => f.id !== fechaObj.id);
-        guardarFechas(fechasFiltradas);
-        ordenarYMostrarFechas();
-      };
-      divBotones.appendChild(btn);
-      
-      li.appendChild(divBotones);
-      listaFechas.appendChild(li);
-    }
-
-    function programarNotificacion(fechaObj) {
-      if (Notification.permission !== "granted") return;
-
-      const hoy = new Date();
-      const fechaEvento = new Date(fechaObj.fechaISO + 'T' + (fechaObj.hora || '09:00'));
-      
-      // Notificación el día del evento
-      if (fechaEvento > hoy) {
-        const tiempoRestante = fechaEvento - hoy;
-        if (tiempoRestante > 0 && tiempoRestante < 86400000) { // Dentro de 24 horas
-          setTimeout(() => {
-            const prioridad = fechaObj.prioritaria ? '⭐ PRIORITARIO - ' : '';
-            new Notification(`${prioridad}Fecha importante`, {
-              body: fechaObj.descripcion,
-              icon: "https://cdn-icons-png.flaticon.com/512/190/190411.png",
-              requireInteraction: fechaObj.prioritaria
-            });
-          }, tiempoRestante);
-        }
-      }
-
-      // Notificación 1 día antes a las 9 AM
-      const unDiaAntes = new Date(fechaObj.fechaISO + 'T09:00:00');
-      unDiaAntes.setDate(unDiaAntes.getDate() - 1);
-      
-      if (unDiaAntes > hoy) {
-        const tiempoAntes = unDiaAntes - hoy;
-        if (tiempoAntes > 0 && tiempoAntes < 86400000) {
-          setTimeout(() => {
-            const prioridad = fechaObj.prioritaria ? '⭐ ' : '';
-            new Notification(`${prioridad}Recordatorio: Mañana`, {
-              body: fechaObj.descripcion,
-              icon: "https://cdn-icons-png.flaticon.com/512/190/190411.png"
-            });
-          }, tiempoAntes);
-        }
-      }
-    }
-
-    function programarTodasLasNotificaciones() {
-      const fechas = obtenerFechas();
-      fechas.forEach(f => programarNotificacion(f));
-    }
-
-    agregarFecha.onclick = () => {
-      if (nuevaFecha.value && descripcionFecha.value.trim()) {
-        const fechas = obtenerFechas();
-        
-        const nuevaFechaObj = {
-          id: generarId(),
-          fechaISO: nuevaFecha.value,
-          hora: horaFecha.value,
-          descripcion: descripcionFecha.value.trim(),
-          prioritaria: checkPrioridad.checked
-        };
-        
-        fechas.push(nuevaFechaObj);
-        guardarFechas(fechas);
-        
-        nuevaFecha.value = '';
-        horaFecha.value = '';
-        descripcionFecha.value = '';
-        checkPrioridad.checked = false;
-        
-        ordenarYMostrarFechas();
-        programarNotificacion(nuevaFechaObj);
-      }
-    };
-
-    // Cargar fechas al inicio
-    eliminarFechasPasadas();
-    ordenarYMostrarFechas();
-    programarTodasLasNotificaciones();
-
-    // Verificar diariamente para eliminar fechas pasadas
-    setInterval(() => {
-      eliminarFechasPasadas();
-      ordenarYMostrarFechas();
-    }, 3600000); // Cada hora
-
-    // Compra
-    const listaCompra = document.getElementById('listaCompra');
-    const nuevoProducto = document.getElementById('nuevoProducto');
-    const agregarProducto = document.getElementById('agregarProducto');
-    const compartirTodaLista = document.getElementById('compartirTodaLista');
-
+    // ==================== COMPRA ====================
+    const listaCompra = $('listaCompra');
+    const obtenerCompra = () => JSON.parse(localStorage.getItem('compra') || '[]');
     function guardarCompra() {
       localStorage.setItem('compra', JSON.stringify(
-        [...listaCompra.querySelectorAll('li span')].map(span => span.textContent)
+        [...listaCompra.querySelectorAll('li .item-texto')].map(s => s.textContent)
       ));
-    }
-    function cargarCompra() {
-      const productos = JSON.parse(localStorage.getItem('compra') || '[]');
-      productos.forEach(p => añadirProducto(p));
+      actualizarBadges();
+      $('compraVacio').style.display = listaCompra.children.length ? 'none' : 'block';
     }
     function añadirProducto(texto) {
       const li = document.createElement('li');
-      li.style.cursor = 'default';
-      const span = document.createElement('span');
+      li.className = 'item';
+      const divInfo = document.createElement('div');
+      divInfo.className = 'item-info';
+      const span = document.createElement('div');
+      span.className = 'item-texto';
       span.textContent = texto;
-      li.appendChild(span);
-      
-      const btnWhatsApp = document.createElement('button');
-      btnWhatsApp.className = 'whatsapp';
-      btnWhatsApp.innerHTML = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>';
-      btnWhatsApp.onclick = () => {
-        const mensaje = encodeURIComponent(`🛒 Comprar:\n${texto}`);
-        window.open(`https://wa.me/?text=${mensaje}`, '_blank');
-      };
-      li.appendChild(btnWhatsApp);
-      
-      const btn = document.createElement('button');
-      btn.textContent = 'Comprado';
-      btn.onclick = () => { li.remove(); guardarCompra(); };
-      li.appendChild(btn);
+      divInfo.appendChild(span);
+      li.appendChild(divInfo);
+      const divBotones = document.createElement('div');
+      divBotones.className = 'item-botones';
+      divBotones.appendChild(crearIconBtn('whatsapp', WHATSAPP_SVG, 'Compartir producto por WhatsApp', () =>
+        compartirWhatsApp(`🛒 Comprar:\n${texto}`)
+      ));
+      divBotones.appendChild(crearIconBtn('hecho', '✓', 'Marcar como comprado', () => {
+        li.remove(); guardarCompra();
+      }));
+      li.appendChild(divBotones);
       listaCompra.appendChild(li);
     }
-    agregarProducto.onclick = () => {
-      if (nuevoProducto.value.trim()) {
-        añadirProducto(nuevoProducto.value.trim());
-        nuevoProducto.value = '';
-        guardarCompra();
-      }
+    $('agregarProducto').onclick = () => {
+      const v = $('nuevoProducto').value.trim();
+      if (v) { añadirProducto(v); $('nuevoProducto').value = ''; guardarCompra(); }
     };
-    
-    compartirTodaLista.onclick = () => {
-      const productos = [...listaCompra.querySelectorAll('li span')].map(span => span.textContent);
-      if (productos.length === 0) {
-        alert('No hay productos en la lista para compartir');
-        return;
-      }
-      const listaTexto = productos.map((p, i) => `${i + 1}. ${p}`).join('\n');
-      const mensaje = encodeURIComponent(`🛒 Lista de la compra:\n\n${listaTexto}`);
-      window.open(`https://wa.me/?text=${mensaje}`, '_blank');
+    $('compartirTodaLista').onclick = () => {
+      const productos = [...listaCompra.querySelectorAll('li .item-texto')].map(s => s.textContent);
+      if (!productos.length) { mostrarToast('No hay productos en la lista para compartir', 'error'); return; }
+      compartirWhatsApp('🛒 Lista de la compra:\n\n' + productos.map((p, i) => `${i + 1}. ${p}`).join('\n'));
     };
-    
-    nuevoProducto.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') agregarProducto.click();
-    });
-    
-    cargarCompra();
+    $('nuevoProducto').addEventListener('keypress', e => { if (e.key === 'Enter') $('agregarProducto').click(); });
 
-    // Service Worker
+    // ==================== COPIA DE SEGURIDAD ====================
+    $('btnBackup').onclick = () => $('modalBackup').classList.add('active');
+    $('btnCerrarBackup').onclick = () => $('modalBackup').classList.remove('active');
+    $('modalBackup').onclick = e => { if (e.target === $('modalBackup')) $('modalBackup').classList.remove('active'); };
+
+    $('btnExportar').onclick = () => {
+      const datos = {
+        app: 'victask', version: 2, fecha: new Date().toISOString(),
+        tareas: obtenerTareas(),
+        fechas: obtenerFechas(),
+        compra: obtenerCompra(),
+        horarioImagen: localStorage.getItem('horarioImagen') || null,
+        dipaImagen: localStorage.getItem('dipaImagen') || null
+      };
+      const blob = new Blob([JSON.stringify(datos)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `victask-copia-${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+      mostrarToast('✓ Copia exportada', 'success');
+    };
+
+    $('btnImportar').onclick = () => $('inputImportar').click();
+    $('inputImportar').onchange = e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async ev => {
+        try {
+          const datos = JSON.parse(ev.target.result);
+          if (datos.app !== 'victask') throw new Error('formato');
+          if (!(await pedirConfirmacion('Importar esta copia sustituirá los datos actuales. ¿Continuar?'))) return;
+          if (Array.isArray(datos.tareas)) localStorage.setItem('tareas', JSON.stringify(datos.tareas));
+          if (Array.isArray(datos.fechas)) localStorage.setItem('fechas', JSON.stringify(datos.fechas));
+          if (Array.isArray(datos.compra)) localStorage.setItem('compra', JSON.stringify(datos.compra));
+          if (datos.horarioImagen) localStorage.setItem('horarioImagen', datos.horarioImagen);
+          if (datos.dipaImagen) localStorage.setItem('dipaImagen', datos.dipaImagen);
+          location.reload();
+        } catch {
+          mostrarToast('El archivo no es una copia válida de Victask', 'error');
+        }
+      };
+      reader.readAsText(file);
+      e.target.value = '';
+    };
+
+    // ==================== INICIO ====================
+    eliminarFechasPasadas();
+    cargarTareas();
+    ordenarYMostrarFechas();
+    listaCompra.innerHTML = '';
+    obtenerCompra().forEach(p => añadirProducto(p));
+    $('compraVacio').style.display = listaCompra.children.length ? 'none' : 'block';
+    programarTodasLasNotificaciones();
+    actualizarBadges();
+
+    setInterval(() => {
+      eliminarFechasPasadas();
+      ordenarYMostrarFechas();
+    }, 3600000);
+
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker.register('service-worker.js').catch(() => {});
