@@ -377,6 +377,59 @@
       min-height: 36px;
     }
 
+    /* ---- Editor de imagen (girar/recortar) ---- */
+    .editor-dialog {
+      background: var(--color-surface);
+      border-radius: 16px;
+      padding: 16px;
+      width: 100%;
+      max-width: 560px;
+      max-height: 92vh;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      box-shadow: 0 20px 50px rgba(15,23,42,0.25);
+    }
+    .editor-dialog h4 { margin: 0; font-size: 1.05rem; }
+    .editor-canvas-wrap {
+      position: relative;
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #0f172a;
+      border-radius: 10px;
+      overflow: hidden;
+      touch-action: none;
+    }
+    #editorCanvas { display: block; max-width: 100%; max-height: 60vh; touch-action: none; }
+    .editor-cropbox {
+      position: absolute;
+      border: 2px solid #fff;
+      box-shadow: 0 0 0 9999px rgba(15,23,42,0.55);
+      box-sizing: border-box;
+      cursor: move;
+      touch-action: none;
+    }
+    .editor-handle {
+      position: absolute;
+      width: 32px;
+      height: 32px;
+      background: var(--color-primary);
+      border: 3px solid #fff;
+      border-radius: 50%;
+      transform: translate(-50%, -50%);
+      touch-action: none;
+      z-index: 2;
+    }
+    .editor-handle.tl { left: 0; top: 0; }
+    .editor-handle.tr { left: 100%; top: 0; }
+    .editor-handle.bl { left: 0; top: 100%; }
+    .editor-handle.br { left: 100%; top: 100%; }
+    .editor-acciones { display: flex; flex-wrap: wrap; gap: 8px; }
+    .editor-acciones .btn { flex: 1 1 auto; }
+
     footer { text-align: center; font-size: 0.8rem; color: var(--color-text-muted); padding: 14px; }
 
     @keyframes fadeInUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
@@ -451,6 +504,7 @@
         <div id="horarioVacio" class="documento-vacio"><p>📸 Sube una foto de tu horario</p></div>
         <div id="horarioContenido" style="display:none;">
           <img id="imagenHorario" class="documento-imagen" alt="Horario escolar">
+          <button id="btnEditarHorario" class="btn">✂️ Girar / Recortar</button>
           <button id="btnCambiarHorario" class="btn btn-warning">📷 Cambiar foto</button>
           <button id="btnEliminarHorario" class="btn btn-danger">🗑️ Eliminar</button>
         </div>
@@ -463,6 +517,7 @@
         <div id="dipaVacio" class="documento-vacio"><p>📸 Sube una foto de tu tarjeta DIPA</p></div>
         <div id="dipaContenido" style="display:none;">
           <img id="imagenDipa" class="documento-imagen" alt="Tarjeta DIPA">
+          <button id="btnEditarDipa" class="btn">✂️ Girar / Recortar</button>
           <button id="btnCambiarDipa" class="btn btn-warning">📷 Cambiar foto</button>
           <button id="btnEliminarDipa" class="btn btn-danger">🗑️ Eliminar</button>
         </div>
@@ -517,6 +572,32 @@
     </div>
   </div>
 
+  <!-- Modal editor de imagen -->
+  <div id="modalEditor" class="modal" role="dialog" aria-modal="true" aria-label="Editar imagen">
+    <div class="editor-dialog">
+      <h4>✂️ Girar y recortar</h4>
+      <div class="editor-canvas-wrap" id="editorWrap">
+        <canvas id="editorCanvas"></canvas>
+        <div class="editor-cropbox" id="editorCropbox">
+          <span class="editor-handle tl" data-h="tl"></span>
+          <span class="editor-handle tr" data-h="tr"></span>
+          <span class="editor-handle bl" data-h="bl"></span>
+          <span class="editor-handle br" data-h="br"></span>
+        </div>
+      </div>
+      <p class="hint" style="margin:0;">Arrastra el recuadro para recortar. Usa los botones para girar.</p>
+      <div class="editor-acciones">
+        <button id="btnGirarIzq" class="btn btn-ghost">↺ Girar</button>
+        <button id="btnGirarDer" class="btn btn-ghost">↻ Girar</button>
+        <button id="btnResetCrop" class="btn btn-ghost">⤢ Todo</button>
+      </div>
+      <div class="editor-acciones">
+        <button id="btnEditorCancelar" class="btn btn-ghost">Cancelar</button>
+        <button id="btnEditorGuardar" class="btn btn-success">✓ Guardar</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toastContainer" aria-live="polite"></div>
   <footer>© CEIP Capitulaciones · Victask</footer>
 
@@ -525,6 +606,69 @@
     // ==================== UTILIDADES ====================
     const $ = id => document.getElementById(id);
     const generarId = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
+
+    // ==================== PERSISTENCIA (IndexedDB + localStorage) ====================
+    // Los datos siguen en localStorage, pero se duplican en IndexedDB, que Safari/Chrome
+    // conservan mejor. Si localStorage se vacía tras actualizar, se restaura desde IndexedDB.
+    const KEYS_SYNC = ['tareas', 'fechas', 'compra', 'horarioImagen', 'dipaImagen'];
+    const IDB = (() => {
+      let dbp = null;
+      function open() {
+        if (!dbp) dbp = new Promise((res, rej) => {
+          const r = indexedDB.open('victask-db', 1);
+          r.onupgradeneeded = () => r.result.createObjectStore('kv');
+          r.onsuccess = () => res(r.result);
+          r.onerror = () => rej(r.error);
+        });
+        return dbp;
+      }
+      async function set(k, v) {
+        try {
+          const db = await open();
+          return await new Promise((res, rej) => {
+            const tx = db.transaction('kv', 'readwrite');
+            tx.objectStore('kv').put(v, k);
+            tx.oncomplete = () => res();
+            tx.onerror = () => rej(tx.error);
+          });
+        } catch { /* IndexedDB no disponible */ }
+      }
+      async function get(k) {
+        try {
+          const db = await open();
+          return await new Promise((res, rej) => {
+            const tx = db.transaction('kv', 'readonly');
+            const rq = tx.objectStore('kv').get(k);
+            rq.onsuccess = () => res(rq.result);
+            rq.onerror = () => rej(rq.error);
+          });
+        } catch { return null; }
+      }
+      return { set, get };
+    })();
+
+    // Interceptar escrituras de localStorage para reflejarlas en IndexedDB
+    const _setItem = localStorage.setItem.bind(localStorage);
+    const _removeItem = localStorage.removeItem.bind(localStorage);
+    localStorage.setItem = (k, v) => { _setItem(k, v); if (KEYS_SYNC.includes(k)) IDB.set(k, v); };
+    localStorage.removeItem = (k) => { _removeItem(k); if (KEYS_SYNC.includes(k)) IDB.set(k, null); };
+
+    async function restaurarDesdeIDB() {
+      for (const k of KEYS_SYNC) {
+        const local = localStorage.getItem(k);
+        if (local != null) {
+          IDB.set(k, local);            // mantener copia fresca
+        } else {
+          const v = await IDB.get(k);   // recuperar si se perdió
+          if (v != null) _setItem(k, v);
+        }
+      }
+    }
+
+    // Pedir al navegador que no borre los datos automáticamente
+    if (navigator.storage && navigator.storage.persist) {
+      navigator.storage.persist().catch(() => {});
+    }
 
     const WHATSAPP_SVG = '<svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/></svg>';
 
@@ -574,6 +718,7 @@
         if ($('modalConfirm').classList.contains('active')) cerrarConfirm(false);
         $('modalZoom').classList.remove('active');
         $('modalBackup').classList.remove('active');
+        $('modalEditor').classList.remove('active');
       }
     });
 
@@ -655,15 +800,17 @@
     }
 
     function cargarTareas() {
-      const tareas = obtenerTareas();
+      let tareas = obtenerTareas();
+      // Migración: eliminar tareas ya completadas de versiones anteriores
+      if (tareas.some(t => t.hecha)) {
+        tareas = tareas.filter(t => !t.hecha);
+        guardarTareas(tareas);
+      }
       listaTareas.innerHTML = '';
       listaHechas.innerHTML = '';
-      const pendientes = tareas.filter(t => !t.hecha);
-      const hechas = tareas.filter(t => t.hecha);
-      pendientes.forEach(t => añadirTareaALista(t));
-      hechas.forEach(t => añadirTareaALista(t));
-      $('tareasVacio').style.display = pendientes.length ? 'none' : 'block';
-      $('tituloHechas').style.display = hechas.length ? 'block' : 'none';
+      tareas.forEach(t => añadirTareaALista(t));
+      $('tareasVacio').style.display = tareas.length ? 'none' : 'block';
+      $('tituloHechas').style.display = 'none';
       actualizarBadges();
     }
 
@@ -722,10 +869,20 @@
           activarEdicion(li, tarea.texto, nuevo => actualizarTarea(tarea.id, (ts, i) => ts[i].texto = nuevo));
         }));
         divBotones.appendChild(crearIconBtn('hecho', '✓', 'Marcar como hecha', () => {
-          actualizarTarea(tarea.id, (ts, i) => ts[i].hecha = true);
+          const tareas = obtenerTareas();
+          const idx = tareas.findIndex(t => t.id === tarea.id);
+          if (idx === -1) return;
+          const copia = tareas[idx];
+          const posicion = idx;
+          tareas.splice(idx, 1);
+          guardarTareas(tareas); cargarTareas();
           mostrarToast('Tarea completada', 'success', {
             etiqueta: 'Deshacer',
-            fn: () => actualizarTarea(tarea.id, (ts, i) => ts[i].hecha = false)
+            fn: () => {
+              const ts = obtenerTareas();
+              ts.splice(Math.min(posicion, ts.length), 0, copia);
+              guardarTareas(ts); cargarTareas();
+            }
           });
         }));
       } else {
@@ -1032,8 +1189,144 @@
       reader.readAsDataURL(file);
     }
 
+    // ---- Editor girar / recortar ----
+    const Editor = (() => {
+      const modal = $('modalEditor');
+      const wrap = $('editorWrap');
+      const canvas = $('editorCanvas');
+      const ctx = canvas.getContext('2d');
+      const cropbox = $('editorCropbox');
+      let img = null, rotacion = 0, escala = 1, offX = 0, offY = 0;
+      let crop = { x: 0, y: 0, w: 0, h: 0 };
+      let onSave = null;
+
+      function dimsRotadas(w, h) { return (rotacion % 180 === 0) ? { w, h } : { w: h, h: w }; }
+
+      function redibujar() {
+        const nat = { w: img.naturalWidth, h: img.naturalHeight };
+        const maxW = Math.min(wrap.clientWidth || 520, 520);
+        const maxH = Math.max(220, window.innerHeight * 0.58);
+        const rot = dimsRotadas(nat.w, nat.h);
+        escala = Math.min(maxW / rot.w, maxH / rot.h, 1);
+        const dispW = Math.round(rot.w * escala);
+        const dispH = Math.round(rot.h * escala);
+        canvas.width = dispW; canvas.height = dispH;
+        canvas.style.width = dispW + 'px'; canvas.style.height = dispH + 'px';
+        const sw = nat.w * escala, sh = nat.h * escala;
+        ctx.clearRect(0, 0, dispW, dispH);
+        ctx.save();
+        ctx.translate(dispW / 2, dispH / 2);
+        ctx.rotate(rotacion * Math.PI / 180);
+        ctx.drawImage(img, -sw / 2, -sh / 2, sw, sh);
+        ctx.restore();
+        posicionarCrop();
+      }
+
+      function posicionarCrop() {
+        const cr = canvas.getBoundingClientRect();
+        const wr = wrap.getBoundingClientRect();
+        offX = cr.left - wr.left; offY = cr.top - wr.top;
+        cropbox.style.left = (offX + crop.x) + 'px';
+        cropbox.style.top = (offY + crop.y) + 'px';
+        cropbox.style.width = crop.w + 'px';
+        cropbox.style.height = crop.h + 'px';
+      }
+
+      function cropCompleto() {
+        crop = { x: 0, y: 0, w: canvas.width, h: canvas.height };
+        posicionarCrop();
+      }
+
+      // Arrastre y redimensionado del recuadro (Pointer Events)
+      let modo = null, hActivo = null, sx = 0, sy = 0, ini = null;
+      function iniciar(e) {
+        e.preventDefault(); e.stopPropagation();
+        sx = e.clientX; sy = e.clientY; ini = { ...crop };
+        if (e.target.classList.contains('editor-handle')) { modo = 'resize'; hActivo = e.target.dataset.h; }
+        else { modo = 'move'; }
+        try { cropbox.setPointerCapture(e.pointerId); } catch {}
+      }
+      function mover(e) {
+        if (!modo) return;
+        e.preventDefault();
+        const dx = e.clientX - sx, dy = e.clientY - sy;
+        const min = 40;
+        if (modo === 'move') {
+          crop.x = Math.max(0, Math.min(ini.x + dx, canvas.width - crop.w));
+          crop.y = Math.max(0, Math.min(ini.y + dy, canvas.height - crop.h));
+        } else {
+          let { x, y, w, h } = ini;
+          if (hActivo.includes('l')) { const nx = Math.max(0, Math.min(x + dx, x + w - min)); w += x - nx; x = nx; }
+          if (hActivo.includes('r')) { w = Math.max(min, Math.min(w + dx, canvas.width - x)); }
+          if (hActivo.includes('t')) { const ny = Math.max(0, Math.min(y + dy, y + h - min)); h += y - ny; y = ny; }
+          if (hActivo.includes('b')) { h = Math.max(min, Math.min(h + dy, canvas.height - y)); }
+          crop = { x, y, w, h };
+        }
+        posicionarCrop();
+      }
+      function soltar(e) { modo = null; hActivo = null; try { cropbox.releasePointerCapture(e.pointerId); } catch {} }
+
+      cropbox.addEventListener('pointerdown', iniciar);
+      cropbox.addEventListener('pointermove', mover);
+      cropbox.addEventListener('pointerup', soltar);
+      cropbox.addEventListener('pointercancel', soltar);
+
+      $('btnGirarIzq').onclick = () => { rotacion = (rotacion + 270) % 360; redibujar(); cropCompleto(); };
+      $('btnGirarDer').onclick = () => { rotacion = (rotacion + 90) % 360; redibujar(); cropCompleto(); };
+      $('btnResetCrop').onclick = cropCompleto;
+      $('btnEditorCancelar').onclick = cerrar;
+      modal.addEventListener('click', e => { if (e.target === modal) cerrar(); });
+
+      $('btnEditorGuardar').onclick = () => {
+        const nat = { w: img.naturalWidth, h: img.naturalHeight };
+        const rot = dimsRotadas(nat.w, nat.h);
+        // Lienzo a resolución completa rotada
+        const full = document.createElement('canvas');
+        full.width = rot.w; full.height = rot.h;
+        const fctx = full.getContext('2d');
+        fctx.translate(rot.w / 2, rot.h / 2);
+        fctx.rotate(rotacion * Math.PI / 180);
+        fctx.drawImage(img, -nat.w / 2, -nat.h / 2, nat.w, nat.h);
+        // Región de recorte en px reales
+        const f = 1 / escala;
+        const rx = crop.x * f, ry = crop.y * f, rw = crop.w * f, rh = crop.h * f;
+        // Reducir a máx 1200 y comprimir
+        const maxDim = 1200;
+        let ow = rw, oh = rh;
+        if (ow > maxDim || oh > maxDim) {
+          if (ow > oh) { oh = oh / ow * maxDim; ow = maxDim; } else { ow = ow / oh * maxDim; oh = maxDim; }
+        }
+        const out = document.createElement('canvas');
+        out.width = Math.round(ow); out.height = Math.round(oh);
+        out.getContext('2d').drawImage(full, rx, ry, rw, rh, 0, 0, out.width, out.height);
+        const dataURL = out.toDataURL('image/jpeg', 0.7);
+        const cb = onSave;
+        cerrar();
+        if (cb) cb(dataURL);
+      };
+
+      function cerrar() { modal.classList.remove('active'); onSave = null; img = null; }
+
+      function abrir(src, guardar) {
+        onSave = guardar; rotacion = 0;
+        img = new Image();
+        img.onload = () => { modal.classList.add('active'); redibujar(); cropCompleto(); };
+        img.src = src;
+      }
+      return { abrir };
+    })();
+
     function configurarDocumento(clave, ids) {
-      const { input, subir, cambiar, eliminar, imagen, vacio, contenido, nombre } = ids;
+      const { input, subir, cambiar, eliminar, editar, imagen, vacio, contenido, nombre } = ids;
+      function guardarImagen(dataURL) {
+        try {
+          localStorage.setItem(clave, dataURL);
+          cargar();
+          mostrarToast(`✓ ${nombre} guardado correctamente`, 'success');
+        } catch {
+          mostrarToast('La imagen es demasiado grande. Prueba con menor resolución.', 'error');
+        }
+      }
       function cargar() {
         const guardado = localStorage.getItem(clave);
         if (guardado) {
@@ -1052,15 +1345,14 @@
       $(input).onchange = e => {
         const file = e.target.files[0];
         if (!file) return;
-        comprimirImagen(file, comprimida => {
-          try {
-            localStorage.setItem(clave, comprimida);
-            cargar();
-            mostrarToast(`✓ ${nombre} guardado correctamente`, 'success');
-          } catch {
-            mostrarToast('La imagen es demasiado grande. Prueba con menor resolución.', 'error');
-          }
-        });
+        const reader = new FileReader();
+        reader.onload = ev => Editor.abrir(ev.target.result, guardarImagen);
+        reader.readAsDataURL(file);
+        e.target.value = '';
+      };
+      if (editar) $(editar).onclick = () => {
+        const actual = localStorage.getItem(clave);
+        if (actual) Editor.abrir(actual, guardarImagen);
       };
       $(eliminar).onclick = async () => {
         if (await pedirConfirmacion(`¿Seguro que quieres eliminar ${nombre.toLowerCase()}?`)) {
@@ -1079,12 +1371,12 @@
 
     const cargarHorario = configurarDocumento('horarioImagen', {
       input: 'inputHorario', subir: 'btnSubirHorario', cambiar: 'btnCambiarHorario',
-      eliminar: 'btnEliminarHorario', imagen: 'imagenHorario',
+      eliminar: 'btnEliminarHorario', editar: 'btnEditarHorario', imagen: 'imagenHorario',
       vacio: 'horarioVacio', contenido: 'horarioContenido', nombre: 'El horario'
     });
     const cargarDipa = configurarDocumento('dipaImagen', {
       input: 'inputDipa', subir: 'btnSubirDipa', cambiar: 'btnCambiarDipa',
-      eliminar: 'btnEliminarDipa', imagen: 'imagenDipa',
+      eliminar: 'btnEliminarDipa', editar: 'btnEditarDipa', imagen: 'imagenDipa',
       vacio: 'dipaVacio', contenido: 'dipaContenido', nombre: 'La tarjeta DIPA'
     });
 
@@ -1247,14 +1539,19 @@
     };
 
     // ==================== INICIO ====================
+    (async () => {
+    await restaurarDesdeIDB();
     eliminarFechasPasadas();
     cargarTareas();
     ordenarYMostrarFechas();
     listaCompra.innerHTML = '';
     obtenerCompra().forEach(p => añadirProducto(p));
     $('compraVacio').style.display = listaCompra.children.length ? 'none' : 'block';
+    cargarHorario();
+    cargarDipa();
     programarTodasLasNotificaciones();
     actualizarBadges();
+    })();
 
     setInterval(() => {
       eliminarFechasPasadas();
