@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tareas-victor-cache-v2';
+const CACHE_NAME = 'tareas-victor-cache-v2-b2610102004';
 const urlsToCache = ['./', './index.html', './manifest.json', './icon-180.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', event => {
